@@ -28,7 +28,7 @@ router.get('/orders/:id', authenticate, async (req: AuthenticatedRequest, res: R
       return;
     }
 
-    const order = db.getOrderById(req.params.id);
+    const order = db.getOrderById(req.params.id as string);
     if (!order) {
       res.status(404).json({ error: 'Order not found.' });
       return;
@@ -98,7 +98,7 @@ router.delete('/addresses/:id', authenticate, async (req: AuthenticatedRequest, 
       res.status(401).json({ error: 'Authentication required.' });
       return;
     }
-    db.deleteAddress(req.user.id, req.params.id);
+    db.deleteAddress(req.user.id, req.params.id as string);
     res.json({ message: 'Address removed successfully.' });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -172,7 +172,7 @@ router.post('/orders/:id/cancel', authenticate, async (req: AuthenticatedRequest
       res.status(401).json({ error: 'Authentication required.' });
       return;
     }
-    const order = db.getOrderById(req.params.id);
+    const order = db.getOrderById(req.params.id as string);
     if (!order) {
       res.status(404).json({ error: 'Order not found.' });
       return;
@@ -213,7 +213,7 @@ router.post('/orders/:id/return', authenticate, async (req: AuthenticatedRequest
       res.status(401).json({ error: 'Authentication required.' });
       return;
     }
-    const order = db.getOrderById(req.params.id);
+    const order = db.getOrderById(req.params.id as string);
     if (!order) {
       res.status(404).json({ error: 'Order not found.' });
       return;
@@ -282,7 +282,7 @@ router.get('/notifications', authenticate, async (req: AuthenticatedRequest, res
 // PUT /api/customer/notifications/:id/read
 router.put('/notifications/:id/read', authenticate, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    db.markNotificationAsRead(req.params.id);
+    db.markNotificationAsRead(req.params.id as string);
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -343,7 +343,7 @@ router.delete('/wishlist/:productId', authenticate, async (req: AuthenticatedReq
       res.status(401).json({ error: 'Authentication required.' });
       return;
     }
-    const removed = db.removeFromWishlist(req.user.id, req.params.productId);
+    const removed = db.removeFromWishlist(req.user.id, req.params.productId as string);
     res.json({ success: removed });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

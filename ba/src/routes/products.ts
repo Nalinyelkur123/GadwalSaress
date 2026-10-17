@@ -54,7 +54,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 // GET /api/products/:slug
 router.get('/:slug', async (req: Request, res: Response): Promise<void> => {
   try {
-    const product = db.getProductBySlug(req.params.slug);
+    const product = db.getProductBySlug(req.params.slug as string);
     if (!product) {
       res.status(404).json({ error: 'Product not found.' });
       return;
@@ -86,7 +86,7 @@ router.post('/:id/reviews', authenticate, async (req: AuthenticatedRequest, res:
     }
 
     const { rating, comment, title } = req.body;
-    const product = db.getProductById(req.params.id);
+    const product = db.getProductById(req.params.id as string);
     if (!product) {
       res.status(404).json({ error: 'Product not found.' });
       return;

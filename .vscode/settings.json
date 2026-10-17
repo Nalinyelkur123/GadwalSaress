@@ -1,0 +1,7 @@
+{
+  "sql.defaultDatabase": "PostgreSQL",
+  "files.associations": {
+    "*.sql": "postgres"
+  },
+  "typescript.tsdk": "fe/node_modules/typescript/lib"
+}

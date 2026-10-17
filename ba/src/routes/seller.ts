@@ -184,7 +184,7 @@ router.post('/products', authenticate, getSellerContext, requireApprovedSeller, 
 router.put('/products/:id', authenticate, getSellerContext, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const seller = (req as any).seller as SellerProfile;
-    const product = db.getProductById(req.params.id);
+    const product = db.getProductById(req.params.id as string);
     if (!product) {
       res.status(404).json({ error: 'Product not found.' });
       return;
@@ -206,7 +206,7 @@ router.put('/products/:id', authenticate, getSellerContext, async (req: Authenti
 router.delete('/products/:id', authenticate, getSellerContext, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const seller = (req as any).seller as SellerProfile;
-    const product = db.getProductById(req.params.id);
+    const product = db.getProductById(req.params.id as string);
     if (!product) {
       res.status(404).json({ error: 'Product not found.' });
       return;
@@ -239,7 +239,7 @@ router.get('/orders', authenticate, getSellerContext, async (req: AuthenticatedR
 router.post('/orders/:id/pack-and-ship', authenticate, getSellerContext, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const seller = (req as any).seller as SellerProfile;
-    const fg = db.fulfillmentGroups.get(req.params.id);
+    const fg = db.fulfillmentGroups.get(req.params.id as string);
     if (!fg) {
       res.status(404).json({ error: 'Fulfillment order not found.' });
       return;
@@ -398,7 +398,7 @@ router.put('/profile', authenticate, getSellerContext, async (req: Authenticated
 router.delete('/products/:id', authenticate, getSellerContext, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const seller = (req as any).seller as SellerProfile;
-    const prod = db.getProductById(req.params.id);
+    const prod = db.getProductById(req.params.id as string);
     if (!prod) {
       res.status(404).json({ error: 'Product not found.' });
       return;
@@ -428,7 +428,7 @@ router.get('/notifications', authenticate, getSellerContext, async (req: Authent
 // PUT /api/seller/notifications/:id/read
 router.put('/notifications/:id/read', authenticate, getSellerContext, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    db.markNotificationAsRead(req.params.id);
+    db.markNotificationAsRead(req.params.id as string);
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

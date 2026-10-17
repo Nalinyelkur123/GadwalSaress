@@ -66,7 +66,8 @@ router.get('/sellers', async (req: AuthenticatedRequest, res: Response): Promise
 router.put('/sellers/:id/kyc', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { kyc_status, commission_rate, status, is_verified } = req.body;
-    const seller = db.getSellerById(req.params.id);
+    const sellerId = req.params.id as string;
+    const seller = db.getSellerById(sellerId);
     if (!seller) {
       res.status(404).json({ error: 'Seller not found.' });
       return;
@@ -110,7 +111,7 @@ router.get('/products', async (req: AuthenticatedRequest, res: Response): Promis
 router.put('/products/:id/moderation', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { status, admin_rejection_reason, is_featured, is_bestseller } = req.body;
-    const product = db.getProductById(req.params.id);
+    const product = db.getProductById(req.params.id as string);
     if (!product) {
       res.status(404).json({ error: 'Product not found.' });
       return;
@@ -153,7 +154,7 @@ router.get('/orders', async (req: AuthenticatedRequest, res: Response): Promise<
 // Controlled refund workflow integrating Razorpay refund and inventory rollback
 router.post('/orders/:id/refund', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const order = db.getOrderById(req.params.id);
+    const order = db.getOrderById(req.params.id as string);
     if (!order) {
       res.status(404).json({ error: 'Order not found.' });
       return;
@@ -216,7 +217,7 @@ router.post('/orders/:id/refund', async (req: AuthenticatedRequest, res: Respons
 // Transition order payment or fulfillment status with strict validation & audit trail
 router.put('/orders/:id/status', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const order = db.getOrderById(req.params.id);
+    const order = db.getOrderById(req.params.id as string);
     if (!order) {
       res.status(404).json({ error: 'Order not found.' });
       return;
@@ -282,7 +283,7 @@ router.get('/finance/payouts', async (req: AuthenticatedRequest, res: Response):
 router.put('/finance/payouts/:id/status', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { status, transaction_ref, admin_notes } = req.body;
-    const payout = db.payoutRequests.get(req.params.id);
+    const payout = db.payoutRequests.get(req.params.id as string);
     if (!payout) {
       res.status(404).json({ error: 'Payout request not found.' });
       return;
@@ -402,7 +403,7 @@ router.post('/cms/coupons', async (req: AuthenticatedRequest, res: Response): Pr
 // PUT /api/admin/cms/banners/:id
 router.put('/cms/banners/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const updated = db.updateBanner(req.params.id, req.body);
+    const updated = db.updateBanner(req.params.id as string, req.body);
     if (!updated) {
       res.status(404).json({ error: 'Banner not found' });
       return;
@@ -416,7 +417,7 @@ router.put('/cms/banners/:id', async (req: AuthenticatedRequest, res: Response):
 // DELETE /api/admin/cms/banners/:id
 router.delete('/cms/banners/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const ok = db.deleteBanner(req.params.id);
+    const ok = db.deleteBanner(req.params.id as string);
     res.json({ success: ok });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -426,7 +427,7 @@ router.delete('/cms/banners/:id', async (req: AuthenticatedRequest, res: Respons
 // PUT /api/admin/cms/coupons/:id
 router.put('/cms/coupons/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const updated = db.updateCoupon(req.params.id, req.body);
+    const updated = db.updateCoupon(req.params.id as string, req.body);
     if (!updated) {
       res.status(404).json({ error: 'Coupon not found' });
       return;
@@ -440,7 +441,7 @@ router.put('/cms/coupons/:id', async (req: AuthenticatedRequest, res: Response):
 // DELETE /api/admin/cms/coupons/:id
 router.delete('/cms/coupons/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const ok = db.deleteCoupon(req.params.id);
+    const ok = db.deleteCoupon(req.params.id as string);
     res.json({ success: ok });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -514,7 +515,7 @@ router.post('/categories', async (req: AuthenticatedRequest, res: Response): Pro
 // PUT /api/admin/categories/:id
 router.put('/categories/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const updated = db.updateCategory(req.params.id, req.body);
+    const updated = db.updateCategory(req.params.id as string, req.body);
     if (!updated) {
       res.status(404).json({ error: 'Category not found.' });
       return;
@@ -536,7 +537,7 @@ router.delete('/categories/:id', async (req: AuthenticatedRequest, res: Response
       });
       return;
     }
-    db.deleteCategory(req.params.id);
+    db.deleteCategory(req.params.id as string);
     res.json({ message: 'Category removed successfully.' });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -634,7 +635,7 @@ router.post('/products', async (req: AuthenticatedRequest, res: Response): Promi
 // DELETE /api/admin/products/:id
 router.delete('/products/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const prod = db.getProductById(req.params.id);
+    const prod = db.getProductById(req.params.id as string);
     if (!prod) {
       res.status(404).json({ error: 'Product not found.' });
       return;
@@ -661,7 +662,8 @@ router.get('/customers', async (req: AuthenticatedRequest, res: Response): Promi
 router.put('/customers/:id/status', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { is_suspended } = req.body;
-    const updated = db.updateCustomerStatus(req.params.id, !!is_suspended);
+    const customerId = req.params.id as string;
+    const updated = db.updateCustomerStatus(customerId, !!is_suspended);
     if (!updated) {
       res.status(404).json({ error: 'Customer not found.' });
       return;
@@ -672,7 +674,7 @@ router.put('/customers/:id/status', async (req: AuthenticatedRequest, res: Respo
       actor_role: 'admin',
       action: 'ADMIN_CUSTOMER_STATUS_CHANGED',
       target_type: 'USER',
-      target_id: req.params.id,
+      target_id: customerId,
       metadata: { is_suspended }
     });
     res.json({ message: 'Customer account status updated.', customer: updated });
@@ -736,7 +738,7 @@ router.get('/notifications', async (req: AuthenticatedRequest, res: Response): P
 // PUT /api/admin/notifications/:id/read
 router.put('/notifications/:id/read', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    db.markNotificationAsRead(req.params.id);
+    db.markNotificationAsRead(req.params.id as string);
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

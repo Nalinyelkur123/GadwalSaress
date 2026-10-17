@@ -64,7 +64,7 @@ router.get('/weavers', async (req: Request, res: Response): Promise<void> => {
 // GET /api/storefront/weavers/:slug
 router.get('/weavers/:slug', async (req: Request, res: Response): Promise<void> => {
   try {
-    const weaver = db.getSellerBySlug(req.params.slug);
+    const weaver = db.getSellerBySlug(req.params.slug as string);
     if (!weaver) {
       res.status(404).json({ error: 'Weaver not found.' });
       return;

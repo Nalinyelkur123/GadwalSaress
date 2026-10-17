@@ -199,7 +199,7 @@ export interface SellerFulfillmentGroup {
   cancellation_reason?: string;
   return_reason?: string;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 export interface Order {
@@ -223,7 +223,7 @@ export interface Order {
   razorpay_payment_id?: string;
   notes?: string;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 export interface SellerLedgerEntry {
