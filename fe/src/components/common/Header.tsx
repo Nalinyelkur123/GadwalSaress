@@ -40,7 +40,7 @@ export const Header: React.FC = () => {
           <div className="flex items-center space-x-4 text-[11px] text-ivory-300">
             <Link to="/track-order" className="hover:text-gold-300 transition-colors">Track Order</Link>
             <span className="opacity-40">•</span>
-            <Link to="/contact" className="hover:text-gold-300 transition-colors">Help</Link>
+            <Link to="/contact" className="hover:text-gold-300 transition-colors">Help & Concierge</Link>
             <span className="opacity-40">•</span>
             {user?.role === 'seller' ? (
               <Link to="/seller/dashboard" className="text-gold-300 hover:text-white font-medium flex items-center gap-1">
@@ -48,51 +48,11 @@ export const Header: React.FC = () => {
               </Link>
             ) : user?.role === 'admin' ? (
               <Link to="/admin/dashboard" className="text-gold-300 hover:text-white font-medium flex items-center gap-1">
-                <Crown size={12} /> Admin CRM
+                <Crown size={12} /> Admin Operations
               </Link>
             ) : (
-              <Link to="/seller/register" className="hover:text-gold-300 transition-colors">Seller Login / Register</Link>
+              <Link to="/seller/register" className="hover:text-gold-300 transition-colors">Weaver Registration</Link>
             )}
-
-            {/* DEMO ROLE SWITCHER PILL */}
-            <div className="relative">
-              <button 
-                onClick={() => setDemoMenuOpen(!demoMenuOpen)}
-                className="bg-gold-500/20 hover:bg-gold-500/30 text-gold-300 border border-gold-500/40 rounded px-2 py-0.5 text-[10px] uppercase tracking-wider flex items-center gap-1 font-semibold"
-              >
-                <span>Role: {user?.role || 'Guest'}</span>
-                <ChevronDown size={10} />
-              </button>
-
-              {demoMenuOpen && (
-                <div className="absolute right-0 mt-1 w-48 bg-white text-charcoal-900 shadow-warm-lg rounded border border-ivory-300 py-1.5 z-50 text-left">
-                  <div className="px-3 py-1 text-[10px] font-bold text-charcoal-500 uppercase tracking-wider border-b border-ivory-300">
-                    Switch Test Persona
-                  </div>
-                  <button
-                    onClick={() => { quickSwitchRole('customer'); setDemoMenuOpen(false); }}
-                    className="w-full text-left px-3 py-1.5 text-xs hover:bg-ivory-200 flex items-center justify-between"
-                  >
-                    <span>Customer (Ananya)</span>
-                    {user?.role === 'customer' && <span className="text-brand-700 font-bold">✓</span>}
-                  </button>
-                  <button
-                    onClick={() => { quickSwitchRole('seller'); setDemoMenuOpen(false); }}
-                    className="w-full text-left px-3 py-1.5 text-xs hover:bg-ivory-200 flex items-center justify-between"
-                  >
-                    <span>Seller (Venkateswara)</span>
-                    {user?.role === 'seller' && <span className="text-brand-700 font-bold">✓</span>}
-                  </button>
-                  <button
-                    onClick={() => { quickSwitchRole('admin'); setDemoMenuOpen(false); }}
-                    className="w-full text-left px-3 py-1.5 text-xs hover:bg-ivory-200 flex items-center justify-between"
-                  >
-                    <span>Admin (Super Admin)</span>
-                    {user?.role === 'admin' && <span className="text-brand-700 font-bold">✓</span>}
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </div>
@@ -118,12 +78,11 @@ export const Header: React.FC = () => {
 
           {/* DESKTOP NAVIGATION LINKS */}
           <nav className="hidden lg:flex items-center space-x-7 text-sm font-medium text-charcoal-700">
-            <Link to="/shop" className="hover:text-brand-700 transition-colors">Sarees</Link>
-            <Link to="/shop?category=bridal-collection" className="hover:text-brand-700 transition-colors">Collections</Link>
+            <Link to="/shop" className="hover:text-brand-700 transition-colors">Shop All Sarees</Link>
+            <Link to="/categories" className="hover:text-brand-700 transition-colors">Categories</Link>
             <Link to="/weavers" className="hover:text-brand-700 transition-colors">Our Weavers</Link>
-            <Link to="/about" className="hover:text-brand-700 transition-colors">About</Link>
-            <Link to="/craft-and-heritage" className="hover:text-brand-700 transition-colors">Craft & Heritage</Link>
-            <Link to="/contact" className="hover:text-brand-700 transition-colors">Contact</Link>
+            <Link to="/craft-and-heritage" className="hover:text-brand-700 transition-colors">Weaving Heritage</Link>
+            <Link to="/contact" className="hover:text-brand-700 transition-colors">Contact Us</Link>
           </nav>
 
           {/* SEARCH BAR */}
@@ -280,17 +239,17 @@ export const Header: React.FC = () => {
               </div>
             </form>
             <div className="flex flex-col space-y-2 px-3 text-sm font-medium">
-              <Link to="/shop" onClick={() => setMobileMenuOpen(false)} className="py-1 text-charcoal-800">Sarees</Link>
-              <Link to="/shop?category=bridal-collection" onClick={() => setMobileMenuOpen(false)} className="py-1 text-charcoal-800">Collections</Link>
+              <Link to="/shop" onClick={() => setMobileMenuOpen(false)} className="py-1 text-charcoal-800">Shop All Sarees</Link>
+              <Link to="/categories" onClick={() => setMobileMenuOpen(false)} className="py-1 text-charcoal-800">Categories</Link>
               <Link to="/weavers" onClick={() => setMobileMenuOpen(false)} className="py-1 text-charcoal-800">Our Weavers</Link>
-              <Link to="/about" onClick={() => setMobileMenuOpen(false)} className="py-1 text-charcoal-800">About Us</Link>
-              <Link to="/craft-and-heritage" onClick={() => setMobileMenuOpen(false)} className="py-1 text-charcoal-800">Craft & Heritage</Link>
-              <Link to="/contact" onClick={() => setMobileMenuOpen(false)} className="py-1 text-charcoal-800">Contact</Link>
+              <Link to="/craft-and-heritage" onClick={() => setMobileMenuOpen(false)} className="py-1 text-charcoal-800">Weaving Heritage</Link>
+              <Link to="/track-order" onClick={() => setMobileMenuOpen(false)} className="py-1 text-charcoal-800">Track Order</Link>
+              <Link to="/contact" onClick={() => setMobileMenuOpen(false)} className="py-1 text-charcoal-800">Contact Us</Link>
               {user?.role === 'seller' && (
                 <Link to="/seller/dashboard" onClick={() => setMobileMenuOpen(false)} className="py-1 text-brand-700 font-semibold">Seller Portal</Link>
               )}
               {user?.role === 'admin' && (
-                <Link to="/admin/dashboard" onClick={() => setMobileMenuOpen(false)} className="py-1 text-brand-700 font-semibold">Admin CRM</Link>
+                <Link to="/admin/dashboard" onClick={() => setMobileMenuOpen(false)} className="py-1 text-brand-700 font-semibold">Admin Operations</Link>
               )}
             </div>
           </div>
