@@ -37,11 +37,11 @@ export const Header: React.FC = () => {
             <span>Pan-India Insured Delivery</span>
           </div>
 
-          <div className="flex items-center space-x-4 text-[11px] text-ivory-300">
+          <div className="flex items-center space-x-3 text-[11px] text-ivory-300">
             <Link to="/track-order" className="hover:text-gold-300 transition-colors">Track Order</Link>
-            <span className="opacity-40">•</span>
-            <Link to="/contact" className="hover:text-gold-300 transition-colors">Help & Concierge</Link>
-            <span className="opacity-40">•</span>
+            <span className="opacity-40">|</span>
+            <Link to="/contact" className="hover:text-gold-300 transition-colors">Help</Link>
+            <span className="opacity-40">|</span>
             {user?.role === 'seller' ? (
               <Link to="/seller/dashboard" className="text-gold-300 hover:text-white font-medium flex items-center gap-1">
                 <Store size={12} /> Seller Portal
@@ -51,7 +51,7 @@ export const Header: React.FC = () => {
                 <Crown size={12} /> Admin Operations
               </Link>
             ) : (
-              <Link to="/seller/register" className="hover:text-gold-300 transition-colors">Weaver Registration</Link>
+              <Link to="/seller/register" className="hover:text-gold-300 transition-colors">Seller Login</Link>
             )}
           </div>
         </div>
@@ -78,11 +78,12 @@ export const Header: React.FC = () => {
 
           {/* DESKTOP NAVIGATION LINKS */}
           <nav className="hidden lg:flex items-center space-x-7 text-sm font-medium text-charcoal-700">
-            <Link to="/shop" className="hover:text-brand-700 transition-colors">Shop All Sarees</Link>
-            <Link to="/categories" className="hover:text-brand-700 transition-colors">Categories</Link>
+            <Link to="/shop" className="hover:text-brand-700 transition-colors">Sarees</Link>
+            <Link to="/categories" className="hover:text-brand-700 transition-colors">Collections</Link>
             <Link to="/weavers" className="hover:text-brand-700 transition-colors">Our Weavers</Link>
-            <Link to="/craft-and-heritage" className="hover:text-brand-700 transition-colors">Weaving Heritage</Link>
-            <Link to="/contact" className="hover:text-brand-700 transition-colors">Contact Us</Link>
+            <Link to="/about" className="hover:text-brand-700 transition-colors">About</Link>
+            <Link to="/craft-and-heritage" className="hover:text-brand-700 transition-colors">Blog</Link>
+            <Link to="/contact" className="hover:text-brand-700 transition-colors">Contact</Link>
           </nav>
 
           {/* SEARCH BAR */}
@@ -192,11 +193,9 @@ export const Header: React.FC = () => {
             {/* WISHLIST */}
             <Link to="/account/wishlist" className="relative text-charcoal-700 hover:text-brand-700 p-1.5 transition-colors hidden sm:block" title="My Wishlist">
               <Heart size={20} />
-              {wishlistIds.size > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-600 text-white font-bold text-[9px] w-4 h-4 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-                  {wishlistIds.size}
-                </span>
-              )}
+              <span className="absolute -top-1 -right-1 bg-red-600 text-white font-bold text-[9px] w-4 h-4 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                {wishlistIds.size}
+              </span>
             </Link>
 
             {/* CART DRAWER BUTTON */}
@@ -206,11 +205,9 @@ export const Header: React.FC = () => {
               aria-label="Shopping Cart"
             >
               <ShoppingBag size={21} />
-              {itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-brand-700 text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-                  {itemCount}
-                </span>
-              )}
+              <span className="absolute -top-1 -right-1 bg-brand-700 text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                {itemCount}
+              </span>
             </button>
 
             {/* MOBILE HAMBURGER MENU */}

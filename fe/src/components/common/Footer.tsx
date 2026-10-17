@@ -42,26 +42,36 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2 text-xs">
               <li><Link to="/shop" className="hover:text-brand-700 transition-colors">All Sarees</Link></li>
               <li><Link to="/shop?category=pure-silk-sarees" className="hover:text-brand-700 transition-colors">Pure Silk Sarees</Link></li>
-              <li><Link to="/shop?category=silk-cotton-sarees" className="hover:text-brand-700 transition-colors">Silk Cotton (Sico)</Link></li>
+              <li><Link to="/shop?category=silk-cotton-sarees" className="hover:text-brand-700 transition-colors">Silk Cotton Sarees</Link></li>
               <li><Link to="/shop?category=bridal-collection" className="hover:text-brand-700 transition-colors">Bridal Collection</Link></li>
-              <li><Link to="/shop?category=temple-border-sarees" className="hover:text-brand-700 transition-colors">Temple Border Sarees</Link></li>
-              <li><Link to="/shop?category=kuttu-sarees" className="hover:text-brand-700 transition-colors">Kuttu Weave Sarees</Link></li>
               <li><Link to="/shop?category=new-arrivals" className="hover:text-brand-700 transition-colors">New Arrivals</Link></li>
+              <li><Link to="/shop" className="hover:text-brand-700 transition-colors">Offers</Link></li>
             </ul>
           </div>
 
-          {/* QUICK LINKS & SUPPORT */}
+          {/* QUICK LINKS */}
           <div>
             <h4 className="font-serif font-bold text-brand-900 text-sm tracking-wide mb-4">Quick Links</h4>
             <ul className="space-y-2 text-xs">
               <li><Link to="/about" className="hover:text-brand-700 transition-colors">About Us</Link></li>
               <li><Link to="/weavers" className="hover:text-brand-700 transition-colors">Our Weavers</Link></li>
-              <li><Link to="/craft-and-heritage" className="hover:text-brand-700 transition-colors">The Art of Gadwal</Link></li>
-              <li><Link to="/track-order" className="hover:text-brand-700 transition-colors">Track Order</Link></li>
+              <li><Link to="/craft-and-heritage" className="hover:text-brand-700 transition-colors">Blog</Link></li>
               <li><Link to="/shipping-policy" className="hover:text-brand-700 transition-colors">Shipping Policy</Link></li>
-              <li><Link to="/returns-policy" className="hover:text-brand-700 transition-colors">Returns & Refunds</Link></li>
+              <li><Link to="/returns-policy" className="hover:text-brand-700 transition-colors">Return Policy</Link></li>
+              <li><Link to="/contact" className="hover:text-brand-700 transition-colors">Contact Us</Link></li>
+            </ul>
+          </div>
+
+          {/* CUSTOMER SUPPORT */}
+          <div>
+            <h4 className="font-serif font-bold text-brand-900 text-sm tracking-wide mb-4">Customer Support</h4>
+            <ul className="space-y-2 text-xs">
+              <li><Link to="/track-order" className="hover:text-brand-700 transition-colors">Track Order</Link></li>
+              <li><Link to="/faq" className="hover:text-brand-700 transition-colors">FAQ</Link></li>
+              <li><Link to="/craft-and-heritage" className="hover:text-brand-700 transition-colors">Size Guide</Link></li>
+              <li><Link to="/craft-and-heritage" className="hover:text-brand-700 transition-colors">Care Instructions</Link></li>
+              <li><Link to="/terms" className="hover:text-brand-700 transition-colors">Terms & Conditions</Link></li>
               <li><Link to="/privacy-policy" className="hover:text-brand-700 transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/terms" className="hover:text-brand-700 transition-colors">Terms of Service</Link></li>
             </ul>
           </div>
 

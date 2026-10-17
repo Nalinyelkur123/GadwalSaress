@@ -37,13 +37,6 @@ export const SareeCard: React.FC<SareeCardProps> = ({ product }) => {
           loading="lazy"
         />
 
-        {/* DISCOUNT BADGE */}
-        {product.discount_percent > 0 && (
-          <span className="absolute top-3 left-3 bg-red-700 text-white font-bold text-[10px] tracking-wider px-2 py-0.5 rounded shadow-sm uppercase">
-            {product.discount_percent}% OFF
-          </span>
-        )}
-
         {/* WISHLIST BUTTON */}
         <button
           onClick={handleToggleWishlist}
@@ -68,13 +61,6 @@ export const SareeCard: React.FC<SareeCardProps> = ({ product }) => {
       {/* CARD CONTENT */}
       <div className="p-4 flex flex-col flex-grow justify-between">
         <div>
-          {/* WEAVER ATTRIBUTION */}
-          {product.seller_name && (
-            <p className="text-[11px] text-gold-600 font-semibold mb-1 truncate">
-              {product.seller_name}
-            </p>
-          )}
-
           {/* TITLE */}
           <Link to={`/product/${product.slug}`}>
             <h3 className="font-serif font-bold text-sm text-charcoal-900 group-hover:text-brand-800 transition-colors line-clamp-1 mb-1.5">
@@ -98,15 +84,22 @@ export const SareeCard: React.FC<SareeCardProps> = ({ product }) => {
             </span>
           </div>
 
-          {/* PRICE ROW */}
-          <div className="flex items-baseline space-x-2 mb-4">
+          {/* PRICE ROW WITH INLINE DISCOUNT */}
+          <div className="flex items-center space-x-2 mb-4 flex-wrap gap-y-1">
             <span className="font-serif font-bold text-base text-brand-900">
-              ₹{product.base_price.toLocaleString('en-IN')}
+              ₹ {product.base_price.toLocaleString('en-IN')}
             </span>
             {product.original_price > product.base_price && (
-              <span className="text-xs text-charcoal-400 line-through">
-                ₹{product.original_price.toLocaleString('en-IN')}
-              </span>
+              <>
+                <span className="text-xs text-charcoal-400 line-through">
+                  ₹ {product.original_price.toLocaleString('en-IN')}
+                </span>
+                {product.discount_percent > 0 && (
+                  <span className="text-[10px] font-bold text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded">
+                    {product.discount_percent}% OFF
+                  </span>
+                )}
+              </>
             )}
           </div>
         </div>
