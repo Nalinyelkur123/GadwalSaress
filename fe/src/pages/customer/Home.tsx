@@ -9,9 +9,12 @@ import {
   Play, 
   CheckCircle2, 
   ChevronRight, 
+  ChevronLeft,
   Star,
   Users,
-  Compass
+  Compass,
+  MapPin,
+  Heart
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { SareeCard } from '../../components/common/SareeCard';
@@ -56,29 +59,29 @@ export const Home: React.FC = () => {
     <div className="space-y-16 lg:space-y-24 pb-16">
       
       {/* ========================================================= */}
-      {/* 1. HERO SECTION (Mirroring the uploaded high-fidelity mockup) */}
+      {/* 1. HERO SECTION (Pixel-aligned to provided mockup) */}
       {/* ========================================================= */}
-      <section className="relative overflow-hidden bg-[#FAF7F2] border-b border-ivory-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 lg:pt-14 lg:pb-24">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <section className="relative overflow-hidden bg-[#FAF6F0] border-b border-ivory-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-14 lg:pt-12 lg:pb-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             
-            {/* HERO TEXT */}
+            {/* LEFT COLUMN: HERO TEXT */}
             <div className="lg:col-span-6 space-y-6 z-10">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-800 text-[11px] font-bold uppercase tracking-[0.2em]">
-                <Sparkles size={12} className="text-gold-500" />
-                <span>The Legacy of Gadwal</span>
-              </div>
+              <span className="text-[11px] font-bold tracking-[0.25em] text-gold-600 uppercase block font-sans">
+                The Legacy of Gadwal
+              </span>
 
-              <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-charcoal-900 leading-[1.15]">
+              <h1 className="font-serif text-4xl sm:text-5xl lg:text-[3.5rem] font-bold text-charcoal-900 leading-[1.12]">
                 Authentic <br />
-                <span className="text-brand-800">Gadwal Handlooms</span>
+                <span className="text-charcoal-900">Gadwal Handlooms</span>
               </h1>
 
-              <p className="text-sm sm:text-base text-charcoal-600 max-w-lg leading-relaxed">
-                Handwoven in Gadwal, Telangana. A legacy in every thread, carrying the heritage of royal patronages and interlocking kuttu borders.
+              <p className="text-sm sm:text-base text-charcoal-600 max-w-md leading-relaxed font-sans">
+                Handwoven in Gadwal, Telangana.<br />
+                A legacy in every thread.
               </p>
 
-              <div className="flex flex-wrap items-center gap-4 pt-2">
+              <div className="flex flex-wrap items-center gap-4 pt-1">
                 <Link
                   to="/shop"
                   className="px-6 py-3 bg-brand-700 hover:bg-brand-800 text-white font-medium text-xs tracking-wider rounded flex items-center gap-2 shadow-warm-md transition-all group"
@@ -95,69 +98,63 @@ export const Home: React.FC = () => {
                 </Link>
               </div>
 
-              {/* 4 PILLARS STRIP */}
+              {/* 4 PILLARS STRIP (Matching Icons in Mockup) */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-8 border-t border-ivory-300">
-                <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
-                  <div className="w-8 h-8 rounded-full bg-gold-100 text-gold-600 flex items-center justify-center mb-1.5">
-                    <Award size={16} />
-                  </div>
+                <div className="flex flex-col items-center sm:items-start text-center sm:text-left space-y-1">
+                  <Award size={20} className="text-gold-600" />
                   <span className="text-xs font-bold text-charcoal-900">Authentic Handlooms</span>
-                  <span className="text-[10px] text-charcoal-500">GI & Silk Mark Certified</span>
                 </div>
 
-                <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
-                  <div className="w-8 h-8 rounded-full bg-gold-100 text-gold-600 flex items-center justify-center mb-1.5">
-                    <Users size={16} />
-                  </div>
-                  <span className="text-xs font-bold text-charcoal-900">Direct From Weavers</span>
-                  <span className="text-[10px] text-charcoal-500">Zero Middlemen</span>
+                <div className="flex flex-col items-center sm:items-start text-center sm:text-left space-y-1">
+                  <Users size={20} className="text-gold-600" />
+                  <span className="text-xs font-bold text-charcoal-900">Direct from Weavers</span>
                 </div>
 
-                <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
-                  <div className="w-8 h-8 rounded-full bg-gold-100 text-gold-600 flex items-center justify-center mb-1.5">
-                    <ShieldCheck size={16} />
-                  </div>
+                <div className="flex flex-col items-center sm:items-start text-center sm:text-left space-y-1">
+                  <ShieldCheck size={20} className="text-gold-600" />
                   <span className="text-xs font-bold text-charcoal-900">Reliable Payments</span>
-                  <span className="text-[10px] text-charcoal-500">100% Encrypted & Safe</span>
                 </div>
 
-                <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
-                  <div className="w-8 h-8 rounded-full bg-gold-100 text-gold-600 flex items-center justify-center mb-1.5">
-                    <Truck size={16} />
-                  </div>
+                <div className="flex flex-col items-center sm:items-start text-center sm:text-left space-y-1">
+                  <Truck size={20} className="text-gold-600" />
                   <span className="text-xs font-bold text-charcoal-900">Pan-India Delivery</span>
-                  <span className="text-[10px] text-charcoal-500">Free Insured Shipping</span>
                 </div>
               </div>
             </div>
 
-            {/* HERO IMAGE & FLOATING SHOWCASE CARD */}
+            {/* RIGHT COLUMN: MAIN SAREE PHOTOGRAPHY & FLOATING CARD */}
             <div className="lg:col-span-6 relative flex justify-center">
-              <div className="relative w-full max-w-md lg:max-w-none aspect-[4/5] rounded-2xl overflow-hidden shadow-warm-lg border-4 border-white">
+              <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden shadow-warm-lg">
                 <img
                   src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1200&auto=format&fit=crop&q=80"
                   alt="Model wearing authentic Gadwal Silk Saree"
                   className="w-full h-full object-cover object-top"
                 />
 
-                {/* FLOATING CARD OVERLAY (As in mockup) */}
-                <div className="absolute bottom-6 right-6 left-6 sm:left-auto sm:w-72 bg-white/95 backdrop-blur-md p-4 rounded-xl shadow-warm-lg border border-ivory-300">
-                  <span className="text-[10px] font-bold text-gold-600 uppercase tracking-wider block mb-1">
-                    Featured Masterpiece
-                  </span>
-                  <h4 className="font-serif font-bold text-xs text-charcoal-900 mb-1">
+                {/* FLOATING CARD OVERLAY (Identical to mockup) */}
+                <div className="absolute bottom-5 right-5 left-5 sm:left-auto sm:w-80 bg-white/95 backdrop-blur-md p-4 rounded-xl shadow-warm-lg border border-ivory-300">
+                  <h4 className="font-serif font-bold text-sm text-charcoal-900 mb-0.5">
                     Royal Gadwal Silk Saree
                   </h4>
-                  <p className="text-[11px] text-charcoal-600 mb-2 leading-snug">
-                    Handwoven with traditional Gadwal interlock technique & pure gold zari.
+                  <p className="text-[11px] text-charcoal-600 mb-2 leading-tight">
+                    Handwoven with traditional Gadwal interlock technique.
                   </p>
-                  <Link
-                    to="/shop"
-                    className="text-xs font-bold text-brand-700 hover:text-brand-900 flex items-center gap-1 group"
-                  >
-                    <span>Explore Collection</span>
-                    <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-                  </Link>
+                  <div className="flex items-center justify-between border-t border-ivory-300 pt-2">
+                    <Link
+                      to="/shop"
+                      className="text-xs font-bold text-brand-700 hover:text-brand-900 flex items-center gap-1 group"
+                    >
+                      <span>Explore Collection</span>
+                      <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                    </Link>
+                    <div className="flex items-center space-x-1 text-[11px] text-charcoal-500 font-mono">
+                      <span>‹</span>
+                      <span className="font-bold text-charcoal-800">01</span>
+                      <span>/</span>
+                      <span>04</span>
+                      <span>›</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -167,12 +164,12 @@ export const Home: React.FC = () => {
       </section>
 
       {/* ========================================================= */}
-      {/* 2. SHOP BY CATEGORY */}
+      {/* 2. SHOP BY CATEGORY (6 Round Thumbnail Cards) */}
       {/* ========================================================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
           <div>
-            <span className="text-xs font-bold tracking-[0.2em] text-gold-600 uppercase block mb-1">
+            <span className="text-[11px] font-bold tracking-[0.25em] text-gold-600 uppercase block mb-1">
               Explore Our Collections
             </span>
             <h2 className="font-serif text-2xl sm:text-3xl font-bold text-charcoal-900">
@@ -213,28 +210,39 @@ export const Home: React.FC = () => {
       </section>
 
       {/* ========================================================= */}
-      {/* 3. FEATURED HANDPICKED SAREES (Mockup grid) */}
+      {/* 3. FEATURED COLLECTION: OUR HANDPICKED SAREES */}
       {/* ========================================================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
           <div>
-            <span className="text-xs font-bold tracking-[0.2em] text-gold-600 uppercase block mb-1">
+            <span className="text-[11px] font-bold tracking-[0.25em] text-gold-600 uppercase block mb-1">
               Featured Collection
             </span>
             <h2 className="font-serif text-2xl sm:text-3xl font-bold text-charcoal-900">
               Our Handpicked Sarees
             </h2>
             <p className="text-xs text-charcoal-500 mt-1">
-              Explore the finest Gadwal handlooms curated from our certified weavers.
+              Explore the finest Gadwal handlooms from our certified weavers.
             </p>
           </div>
-          <Link
-            to="/shop"
-            className="text-xs font-bold text-brand-700 hover:text-brand-900 flex items-center gap-1 group"
-          >
-            <span>View All Sarees</span>
-            <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
-          </Link>
+
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-1 text-charcoal-600">
+              <button className="w-7 h-7 rounded-full border border-ivory-400 hover:border-brand-700 flex items-center justify-center text-xs">
+                <ChevronLeft size={14} />
+              </button>
+              <button className="w-7 h-7 rounded-full border border-ivory-400 hover:border-brand-700 flex items-center justify-center text-xs">
+                <ChevronRight size={14} />
+              </button>
+            </div>
+            <Link
+              to="/shop"
+              className="text-xs font-bold text-brand-700 hover:text-brand-900 flex items-center gap-1 group ml-2"
+            >
+              <span>View All Sarees</span>
+              <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -251,7 +259,7 @@ export const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             
-            {/* VIDEO THUMBNAIL */}
+            {/* VIDEO THUMBNAIL (Artisan at Pit Loom) */}
             <div className="lg:col-span-6">
               <div 
                 onClick={() => setVideoModalOpen(true)}
@@ -266,7 +274,7 @@ export const Home: React.FC = () => {
                   <div className="w-14 h-14 rounded-full bg-brand-700/90 text-white flex items-center justify-center pl-1 mb-3 group-hover:scale-110 transition-transform shadow-lg border border-gold-400">
                     <Play size={24} fill="currentColor" />
                   </div>
-                  <h4 className="font-serif font-bold text-lg mb-1">Watch Our Story</h4>
+                  <h4 className="font-serif font-bold text-lg mb-0.5">Watch Our Story</h4>
                   <p className="text-xs text-gold-200">The Art of Gadwal Weaves</p>
                 </div>
               </div>
@@ -274,15 +282,15 @@ export const Home: React.FC = () => {
 
             {/* HERITAGE CONTENT */}
             <div className="lg:col-span-6 space-y-5">
-              <span className="text-xs font-bold tracking-[0.2em] text-gold-600 uppercase block">
+              <span className="text-[11px] font-bold tracking-[0.25em] text-gold-600 uppercase block">
                 A Rich Heritage
               </span>
               <h2 className="font-serif text-3xl sm:text-4xl font-bold text-charcoal-900 leading-tight">
                 More Than a Saree. <br />
                 A Living Tradition.
               </h2>
-              <p className="text-xs sm:text-sm text-charcoal-600 leading-relaxed">
-                Gadwal sarees are known for their unique interlock weaving, rich silk, and timeless elegance. Each saree carries the legacy of generations of skilled weavers from Gadwal, Telangana, who weave the lightweight cotton body and pure silk border with seamless interlocking precision.
+              <p className="text-xs sm:text-sm text-charcoal-600 leading-relaxed font-sans">
+                Gadwal sarees are known for their unique interlock weaving, rich silk, and timeless elegance. Each saree carries the legacy of generations of skilled weavers from Gadwal, Telangana.
               </p>
               <div>
                 <Link
@@ -300,7 +308,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* ========================================================= */}
-      {/* 5. WHY CHOOSE GADWAL WEAVES (4 FEATURES STRIP) */}
+      {/* 5. WHY CHOOSE GADWAL WEAVES? */}
       {/* ========================================================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-xl mx-auto mb-10">
@@ -310,43 +318,43 @@ export const Home: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="p-6 rounded-xl bg-white border border-ivory-300 text-center space-y-2.5 shadow-warm-sm">
-            <div className="w-12 h-12 rounded-full bg-brand-50 text-brand-700 flex items-center justify-center mx-auto">
+          <div className="p-6 rounded-xl bg-white border border-ivory-300 text-center space-y-2 shadow-warm-sm">
+            <div className="w-12 h-12 rounded-full bg-gold-50 text-gold-600 flex items-center justify-center mx-auto">
               <Users size={22} />
             </div>
             <h3 className="font-serif font-bold text-sm text-charcoal-900">Verified Weavers</h3>
             <p className="text-xs text-charcoal-500 leading-relaxed">
-              Sellers are certified handloom cooperatives and master artisans from Gadwal.
+              Sellers are certified from Gadwal.
             </p>
           </div>
 
-          <div className="p-6 rounded-xl bg-white border border-ivory-300 text-center space-y-2.5 shadow-warm-sm">
-            <div className="w-12 h-12 rounded-full bg-brand-50 text-brand-700 flex items-center justify-center mx-auto">
+          <div className="p-6 rounded-xl bg-white border border-ivory-300 text-center space-y-2 shadow-warm-sm">
+            <div className="w-12 h-12 rounded-full bg-gold-50 text-gold-600 flex items-center justify-center mx-auto">
               <ShieldCheck size={22} />
             </div>
             <h3 className="font-serif font-bold text-sm text-charcoal-900">Authenticity Guarantee</h3>
             <p className="text-xs text-charcoal-500 leading-relaxed">
-              Silk Mark & Handloom Mark certified. 100% genuine weaves or full refund.
+              Handloom & Silk Mark sarees.
             </p>
           </div>
 
-          <div className="p-6 rounded-xl bg-white border border-ivory-300 text-center space-y-2.5 shadow-warm-sm">
-            <div className="w-12 h-12 rounded-full bg-brand-50 text-brand-700 flex items-center justify-center mx-auto">
+          <div className="p-6 rounded-xl bg-white border border-ivory-300 text-center space-y-2 shadow-warm-sm">
+            <div className="w-12 h-12 rounded-full bg-gold-50 text-gold-600 flex items-center justify-center mx-auto">
               <Sparkles size={22} />
             </div>
             <h3 className="font-serif font-bold text-sm text-charcoal-900">Wide Collection</h3>
             <p className="text-xs text-charcoal-500 leading-relaxed">
-              From traditional temple borders to modern festive pastel palettes.
+              From traditional to modern.
             </p>
           </div>
 
-          <div className="p-6 rounded-xl bg-white border border-ivory-300 text-center space-y-2.5 shadow-warm-sm">
-            <div className="w-12 h-12 rounded-full bg-brand-50 text-brand-700 flex items-center justify-center mx-auto">
+          <div className="p-6 rounded-xl bg-white border border-ivory-300 text-center space-y-2 shadow-warm-sm">
+            <div className="w-12 h-12 rounded-full bg-gold-50 text-gold-600 flex items-center justify-center mx-auto">
               <Award size={22} />
             </div>
             <h3 className="font-serif font-bold text-sm text-charcoal-900">Secure & Easy Shopping</h3>
             <p className="text-xs text-charcoal-500 leading-relaxed">
-              Razorpay encrypted checkout, order tracking, and hassle-free returns.
+              Multiple payment options.
             </p>
           </div>
         </div>
@@ -358,7 +366,7 @@ export const Home: React.FC = () => {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
           <div>
-            <span className="text-xs font-bold tracking-[0.2em] text-gold-600 uppercase block mb-1">
+            <span className="text-[11px] font-bold tracking-[0.25em] text-gold-600 uppercase block mb-1">
               Meet the Weavers
             </span>
             <h2 className="font-serif text-2xl sm:text-3xl font-bold text-charcoal-900">
@@ -413,7 +421,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* ========================================================= */}
-      {/* 7. BENTO COLLECTION BANNERS (Bridal, New Arrivals, Festive) */}
+      {/* 7. BENTO COLLECTION BANNERS */}
       {/* ========================================================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -425,15 +433,12 @@ export const Home: React.FC = () => {
               alt="Bridal Collection"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-charcoal-900/80 via-charcoal-900/50 to-transparent flex flex-col justify-center p-8 sm:p-12 text-white">
-              <span className="text-[10px] font-bold tracking-[0.2em] text-gold-300 uppercase mb-2">
-                Curated Series
-              </span>
+            <div className="absolute inset-0 bg-gradient-to-r from-charcoal-900/85 via-charcoal-900/50 to-transparent flex flex-col justify-center p-8 sm:p-12 text-white">
               <h3 className="font-serif text-2xl sm:text-3xl font-bold mb-2">
                 Bridal Collection
               </h3>
               <p className="text-xs sm:text-sm text-ivory-300 max-w-sm mb-6 leading-relaxed">
-                Exquisite handwoven pure silk sarees crafted for your most auspicious wedding moments.
+                Exquisite handwoven sarees for your special moments.
               </p>
               <div>
                 <Link
@@ -459,7 +464,7 @@ export const Home: React.FC = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-r from-charcoal-900/80 to-transparent flex flex-col justify-center p-6 text-white">
                 <h3 className="font-serif text-xl font-bold mb-1">New Arrivals</h3>
-                <p className="text-xs text-ivory-300 mb-3">Fresh weaves, new stories straight from the loom.</p>
+                <p className="text-xs text-ivory-300 mb-3">Fresh weaves, new stories.</p>
                 <div>
                   <Link
                     to="/shop?category=new-arrivals"
@@ -481,7 +486,7 @@ export const Home: React.FC = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-r from-charcoal-900/80 to-transparent flex flex-col justify-center p-6 text-white">
                 <h3 className="font-serif text-xl font-bold mb-1">Festive Collection</h3>
-                <p className="text-xs text-ivory-300 mb-3">Find the best sarees for every celebration.</p>
+                <p className="text-xs text-ivory-300 mb-3">Find the best sarees for every celebration!</p>
                 <div>
                   <Link
                     to="/shop?collection=festive-collection"
@@ -508,7 +513,7 @@ export const Home: React.FC = () => {
             What Our Customers Say
           </h2>
           <p className="text-xs text-charcoal-500 mt-1">
-            Loved by saree enthusiasts and brides across India.
+            Loved by saree enthusiasts across India.
           </p>
         </div>
 
@@ -518,7 +523,7 @@ export const Home: React.FC = () => {
               <div>
                 <div className="flex items-center text-amber-500 mb-3">
                   {[...Array(test.rating)].map((_, i) => (
-                    <Star key={i} size={14} className="fill-amber-400 text-amber-400" />
+                    <Star key={i} size={13} className="fill-amber-400 text-amber-400" />
                   ))}
                 </div>
                 <p className="text-xs text-charcoal-700 leading-relaxed italic">
@@ -541,21 +546,21 @@ export const Home: React.FC = () => {
       </section>
 
       {/* ========================================================= */}
-      {/* 9. JOIN OUR HANDLOOM COMMUNITY (Newsletter Banner) */}
+      {/* 9. JOIN OUR HANDLOOM COMMUNITY (Newsletter) */}
       {/* ========================================================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-brand-900 rounded-2xl p-8 sm:p-12 text-center text-white relative overflow-hidden shadow-warm-lg">
-          <div className="max-w-xl mx-auto space-y-4 relative z-10">
+          <div className="max-w-xl mx-auto space-y-3 relative z-10">
             <h2 className="font-serif text-2xl sm:text-3xl font-bold text-gold-200">
               Join Our Handloom Community
             </h2>
             <p className="text-xs text-ivory-300 leading-relaxed">
-              Get updates on new collections, exclusive festive offers, and stories from our master weavers.
+              Get updates on new collections, exclusive offers and stories from our weavers.
             </p>
 
             {newsletterSubscribed ? (
               <div className="p-3 bg-brand-800/80 rounded border border-gold-400/30 text-gold-300 text-xs font-medium">
-                ✓ Thank you for subscribing! We've sent a 10% welcome coupon to your inbox.
+                ✓ Thank you for subscribing! We've sent a welcome coupon to your inbox.
               </div>
             ) : (
               <form onSubmit={handleNewsletter} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto pt-2">
@@ -571,7 +576,7 @@ export const Home: React.FC = () => {
                   type="submit"
                   className="px-6 py-2.5 bg-brand-700 hover:bg-brand-800 text-gold-200 font-semibold text-xs rounded border border-gold-400/40 transition-colors shadow-sm"
                 >
-                  Subscribe
+                  Subscribe →
                 </button>
               </form>
             )}

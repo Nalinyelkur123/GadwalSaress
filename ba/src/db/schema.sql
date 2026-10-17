@@ -292,6 +292,38 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 10. IN-APP NOTIFICATIONS & SITE SETTINGS
+CREATE TABLE IF NOT EXISTS public.in_app_notifications (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id TEXT NOT NULL,
+    recipient_role TEXT,
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    type TEXT NOT NULL,
+    link TEXT,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.site_settings (
+    id TEXT PRIMARY KEY DEFAULT 'settings-001',
+    marketplace_name TEXT NOT NULL DEFAULT 'Gadwal Weaves',
+    support_email TEXT NOT NULL DEFAULT 'support@gadwalweaves.in',
+    support_phone TEXT NOT NULL DEFAULT '+91 98765 43210',
+    announcement_bar_text TEXT NOT NULL,
+    announcement_bar_link TEXT DEFAULT '/shop',
+    announcement_bar_active BOOLEAN DEFAULT TRUE,
+    currency TEXT DEFAULT 'INR',
+    currency_symbol TEXT DEFAULT '₹',
+    tax_rate_handloom NUMERIC(4,2) DEFAULT 5.00,
+    free_shipping_threshold NUMERIC(12,2) DEFAULT 0,
+    default_commission_rate NUMERIC(5,2) DEFAULT 10.00,
+    meta_title TEXT,
+    meta_description TEXT,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+
 -- INDEXES FOR PERFORMANCE
 CREATE INDEX IF NOT EXISTS idx_products_seller ON public.products(seller_id);
 CREATE INDEX IF NOT EXISTS idx_products_category ON public.products(category_id);

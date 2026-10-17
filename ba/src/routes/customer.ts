@@ -165,4 +165,189 @@ router.post('/tickets', authenticate, async (req: AuthenticatedRequest, res: Res
   }
 });
 
+// POST /api/customer/orders/:id/cancel
+router.post('/orders/:id/cancel', authenticate, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required.' });
+      return;
+    }
+    const order = db.getOrderById(req.params.id);
+    if (!order) {
+      res.status(404).json({ error: 'Order not found.' });
+      return;
+    }
+    if (order.customer_id !== req.user.id && req.user.role !== 'admin') {
+      res.status(403).json({ error: 'Access denied.' });
+      return;
+    }
+
+    const { reason = 'Customer requested cancellation' } = req.body;
+    const result = db.cancelOrder(order.id, reason);
+    if (!result.success) {
+      res.status(400).json({ error: result.message });
+      return;
+    }
+
+    // Notify Admin and Seller
+    db.createNotification({
+      user_id: 'admin',
+      recipient_role: 'admin',
+      title: `Order ${order.order_number} Cancelled`,
+      message: `Customer ${order.customer_name} cancelled order: "${reason}"`,
+      type: 'order',
+      link: '/admin/orders',
+      is_read: false
+    });
+
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/customer/orders/:id/return
+router.post('/orders/:id/return', authenticate, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required.' });
+      return;
+    }
+    const order = db.getOrderById(req.params.id);
+    if (!order) {
+      res.status(404).json({ error: 'Order not found.' });
+      return;
+    }
+    if (order.customer_id !== req.user.id && req.user.role !== 'admin') {
+      res.status(403).json({ error: 'Access denied.' });
+      return;
+    }
+
+    const { reason } = req.body;
+    if (!reason || reason.trim().length < 5) {
+      res.status(400).json({ error: 'Please provide a clear reason for the return request (minimum 5 characters).' });
+      return;
+    }
+
+    const result = db.requestReturn(order.id, reason);
+    if (!result.success) {
+      res.status(400).json({ error: result.message });
+      return;
+    }
+
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/customer/profile
+router.put('/profile', authenticate, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required.' });
+      return;
+    }
+    const { full_name, phone, avatar_url } = req.body;
+    const updated = db.updateUser(req.user.id, {
+      full_name: full_name?.trim() || req.user.full_name,
+      phone: phone?.trim(),
+      avatar_url: avatar_url?.trim(),
+    });
+    if (!updated) {
+      res.status(404).json({ error: 'User profile not found.' });
+      return;
+    }
+    const { password_hash: _, ...safeUser } = updated;
+    res.json({ message: 'Profile updated successfully.', user: safeUser });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/customer/notifications
+router.get('/notifications', authenticate, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required.' });
+      return;
+    }
+    const notifs = db.getNotifications(req.user.id, 'customer');
+    res.json(notifs);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/customer/notifications/:id/read
+router.put('/notifications/:id/read', authenticate, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    db.markNotificationAsRead(req.params.id);
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/customer/wishlist
+router.get('/wishlist', authenticate, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required.' });
+      return;
+    }
+    const products = db.getWishlist(req.user.id);
+    res.json(products);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/customer/wishlist/ids
+router.get('/wishlist/ids', authenticate, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required.' });
+      return;
+    }
+    const ids = db.getWishlistIds(req.user.id);
+    res.json(ids);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/customer/wishlist/toggle
+router.post('/wishlist/toggle', authenticate, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required.' });
+      return;
+    }
+    const { productId } = req.body;
+    if (!productId) {
+      res.status(400).json({ error: 'productId is required.' });
+      return;
+    }
+    const result = db.toggleWishlist(req.user.id, productId);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/customer/wishlist/:productId
+router.delete('/wishlist/:productId', authenticate, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required.' });
+      return;
+    }
+    const removed = db.removeFromWishlist(req.user.id, req.params.productId);
+    res.json({ success: removed });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

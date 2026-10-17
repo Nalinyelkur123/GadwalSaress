@@ -22,6 +22,22 @@ function getSellerContext(req: AuthenticatedRequest, res: Response, next: () => 
   next();
 }
 
+// Middleware: Ensure seller is approved before allowing publishing or financial withdrawals
+function requireApprovedSeller(req: AuthenticatedRequest, res: Response, next: () => void) {
+  const seller = (req as any).seller as SellerProfile;
+  if (seller.status === 'suspended') {
+    res.status(403).json({ error: 'Your seller account has been suspended by marketplace operations.' });
+    return;
+  }
+  if (seller.kyc_status !== 'approved') {
+    res.status(403).json({ 
+      error: `Your weaver application is currently ${seller.kyc_status}. Only approved artisans can perform this action.` 
+    });
+    return;
+  }
+  next();
+}
+
 // GET /api/seller/dashboard
 router.get('/dashboard', authenticate, getSellerContext, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
@@ -66,15 +82,15 @@ router.get('/dashboard', authenticate, getSellerContext, async (req: Authenticat
 router.get('/products', authenticate, getSellerContext, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const seller = (req as any).seller as SellerProfile;
-    const products = db.getAllProducts({ sellerId: seller.id });
+    const products = db.getAllProducts({ sellerId: seller.id, status: '' });
     res.json(products);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// POST /api/seller/products
-router.post('/products', authenticate, getSellerContext, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+// POST /api/seller/products (Requires approved KYC!)
+router.post('/products', authenticate, getSellerContext, requireApprovedSeller, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const seller = (req as any).seller as SellerProfile;
     const {
@@ -133,7 +149,7 @@ router.post('/products', authenticate, getSellerContext, async (req: Authenticat
       gi_certified: true,
       handloom_mark_certified: true,
       images: Array.isArray(images) && images.length ? images : ['https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1000&auto=format&fit=crop&q=80'],
-      status: 'pending_approval', // Products created by sellers go through admin moderation!
+      status: 'pending_approval',
       rating: 5.0,
       review_count: 0,
       is_featured: false,
@@ -145,7 +161,6 @@ router.post('/products', authenticate, getSellerContext, async (req: Authenticat
 
     db.createProduct(newProduct);
 
-    // Audit log
     db.logAudit({
       actor_id: req.user!.id,
       actor_email: req.user!.email,
@@ -175,7 +190,6 @@ router.put('/products/:id', authenticate, getSellerContext, async (req: Authenti
       return;
     }
 
-    // Ownership check: seller can only edit their own products!
     if (product.seller_id !== seller.id) {
       res.status(403).json({ error: 'Access denied. You do not own this product.' });
       return;
@@ -183,6 +197,28 @@ router.put('/products/:id', authenticate, getSellerContext, async (req: Authenti
 
     const updated = db.updateProduct(product.id, req.body);
     res.json({ message: 'Product updated.', product: updated });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/seller/products/:id
+router.delete('/products/:id', authenticate, getSellerContext, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const seller = (req as any).seller as SellerProfile;
+    const product = db.getProductById(req.params.id);
+    if (!product) {
+      res.status(404).json({ error: 'Product not found.' });
+      return;
+    }
+
+    if (product.seller_id !== seller.id) {
+      res.status(403).json({ error: 'Access denied. You do not own this product.' });
+      return;
+    }
+
+    db.deleteProduct(product.id);
+    res.json({ message: 'Product listing removed successfully.' });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -200,7 +236,6 @@ router.get('/orders', authenticate, getSellerContext, async (req: AuthenticatedR
 });
 
 // POST /api/seller/orders/:id/pack-and-ship
-// Seller packs items, enters package weight/dimensions, and generates Shiprocket shipment & AWB
 router.post('/orders/:id/pack-and-ship', authenticate, getSellerContext, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const seller = (req as any).seller as SellerProfile;
@@ -210,7 +245,6 @@ router.post('/orders/:id/pack-and-ship', authenticate, getSellerContext, async (
       return;
     }
 
-    // Ownership check
     if (fg.seller_id !== seller.id) {
       res.status(403).json({ error: 'Access denied to this fulfillment group.' });
       return;
@@ -282,8 +316,8 @@ router.get('/finance', authenticate, getSellerContext, async (req: Authenticated
   }
 });
 
-// POST /api/seller/finance/request-payout
-router.post('/finance/request-payout', authenticate, getSellerContext, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+// POST /api/seller/finance/request-payout (Requires approved KYC!)
+router.post('/finance/request-payout', authenticate, getSellerContext, requireApprovedSeller, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const seller = (req as any).seller as SellerProfile;
     const { amount } = req.body;
@@ -318,7 +352,6 @@ router.post('/finance/request-payout', authenticate, getSellerContext, async (re
 
     db.createPayoutRequest(payout);
 
-    // Update corresponding ledger entries to 'requested'
     let remaining = requestedAmount;
     for (const entry of availableEntries) {
       if (remaining <= 0) break;
@@ -342,7 +375,7 @@ router.post('/finance/request-payout', authenticate, getSellerContext, async (re
 router.put('/profile', authenticate, getSellerContext, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const seller = (req as any).seller as SellerProfile;
-    const { business_name, description, story, location, experience_years, pickup_address, gstin, pan, bank_details } = req.body;
+    const { business_name, description, story, location, experience_years, pickup_address, gstin, pan } = req.body;
 
     const updated = db.updateSeller(seller.id, {
       business_name: business_name || seller.business_name,
@@ -356,6 +389,47 @@ router.put('/profile', authenticate, getSellerContext, async (req: Authenticated
     });
 
     res.json({ message: 'Seller profile updated.', seller: updated });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/seller/products/:id
+router.delete('/products/:id', authenticate, getSellerContext, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const seller = (req as any).seller as SellerProfile;
+    const prod = db.getProductById(req.params.id);
+    if (!prod) {
+      res.status(404).json({ error: 'Product not found.' });
+      return;
+    }
+    if (prod.seller_id !== seller.id) {
+      res.status(403).json({ error: 'Access denied. You do not own this product.' });
+      return;
+    }
+    db.updateProduct(prod.id, { status: 'archived' });
+    res.json({ message: 'Product archived successfully.' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/seller/notifications
+router.get('/notifications', authenticate, getSellerContext, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const seller = (req as any).seller as SellerProfile;
+    const notifs = db.getNotifications(seller.user_id, 'seller');
+    res.json(notifs);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/seller/notifications/:id/read
+router.put('/notifications/:id/read', authenticate, getSellerContext, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    db.markNotificationAsRead(req.params.id);
+    res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

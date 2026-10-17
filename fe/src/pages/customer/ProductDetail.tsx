@@ -16,6 +16,7 @@ import {
 import { api } from '../../services/api';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
+import { useWishlist } from '../../context/WishlistContext';
 import { Product, SellerProfile, Review } from '../../types';
 import { SareeCard } from '../../components/common/SareeCard';
 
@@ -23,6 +24,7 @@ export const ProductDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
   const { user, setIsAuthModalOpen } = useAuth();
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -275,6 +277,18 @@ export const ProductDetail: React.FC = () => {
                 className="flex-1 py-3 px-6 bg-brand-900 hover:bg-brand-950 text-gold-300 font-medium text-xs tracking-wider rounded border border-gold-400/40 transition-colors shadow-sm"
               >
                 Buy Now
+              </button>
+
+              <button
+                onClick={() => toggleWishlist(product.id)}
+                className={`p-3 rounded border transition-colors flex items-center justify-center ${
+                  isInWishlist(product.id)
+                    ? 'border-red-300 bg-red-50 text-red-600'
+                    : 'border-ivory-400 bg-white text-charcoal-700 hover:text-brand-800 hover:border-brand-700'
+                }`}
+                title={isInWishlist(product.id) ? "Remove from Wishlist" : "Save to Wishlist"}
+              >
+                <Heart size={18} className={isInWishlist(product.id) ? "fill-red-600" : ""} />
               </button>
             </div>
           </div>

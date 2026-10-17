@@ -7,6 +7,8 @@ export interface UserProfile {
   phone?: string;
   role: UserRole;
   avatar_url?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface SellerProfile {
@@ -52,6 +54,7 @@ export interface Category {
   description?: string;
   image_url?: string;
   display_order: number;
+  is_active?: boolean;
 }
 
 export interface Collection {
@@ -135,13 +138,16 @@ export interface SellerFulfillmentGroup {
   subtotal: number;
   commission_amount: number;
   net_seller_amount: number;
-  fulfillment_status: 'pending' | 'processing' | 'packed' | 'shipped' | 'delivered' | 'cancelled';
+  fulfillment_status: 'pending' | 'processing' | 'packed' | 'shipped' | 'delivered' | 'cancelled' | 'return_requested' | 'unfulfilled';
   shipping_awb?: string;
   courier_name?: string;
   tracking_url?: string;
   package_weight_kg?: number;
   shipped_at?: string;
   delivered_at?: string;
+  cancellation_reason?: string;
+  return_reason?: string;
+  created_at?: string;
 }
 
 export interface Order {
@@ -160,10 +166,12 @@ export interface Order {
   shipping_fee: number;
   tax_amount: number;
   final_amount: number;
-  payment_status: 'pending' | 'authorized' | 'captured' | 'failed' | 'refunded';
+  payment_status: 'pending' | 'authorized' | 'captured' | 'failed' | 'refunded' | 'cancelled';
   razorpay_order_id?: string;
   razorpay_payment_id?: string;
   notes?: string;
+  cancellation_reason?: string;
+  return_reason?: string;
   created_at: string;
 }
 
@@ -202,3 +210,40 @@ export interface Coupon {
   used_count?: number;
   is_active: boolean;
 }
+
+export interface InAppNotification {
+  id: string;
+  user_id: string;
+  recipient_role?: UserRole;
+  title: string;
+  message: string;
+  type: 'order' | 'product' | 'kyc' | 'payout' | 'shipping' | 'refund' | 'system';
+  link?: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface SiteSettings {
+  id: string;
+  marketplace_name: string;
+  support_email: string;
+  support_phone: string;
+  announcement_bar_text: string;
+  announcement_bar_link?: string;
+  announcement_bar_active: boolean;
+  currency: string;
+  currency_symbol: string;
+  tax_rate_handloom: number;
+  free_shipping_threshold: number;
+  default_commission_rate: number;
+  meta_title: string;
+  meta_description: string;
+}
+
+export interface CustomerSummary extends UserProfile {
+  total_orders: number;
+  total_spent: number;
+  last_order_date?: string;
+  is_suspended?: boolean;
+}
+

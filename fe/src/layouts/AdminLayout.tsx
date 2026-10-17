@@ -45,9 +45,12 @@ export const AdminLayout: React.FC = () => {
 
   const navLinks = [
     { label: 'Operations Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-    { label: 'Sellers & Weavers', path: '/admin/sellers', icon: Users },
     { label: 'Catalog Moderation', path: '/admin/products', icon: Package },
+    { label: 'Categories & Taxonomy', path: '/admin/categories', icon: Layers },
+    { label: 'Sellers & Weavers', path: '/admin/sellers', icon: Users },
+    { label: 'Customers CRM', path: '/admin/customers', icon: Users },
     { label: 'Orders & Refunds', path: '/admin/orders', icon: ShoppingBag },
+    { label: 'Shiprocket Logistics', path: '/admin/shipments', icon: ShieldAlert },
     { label: 'Finance & Payouts', path: '/admin/finance', icon: DollarSign },
     { label: 'CMS & Promotions', path: '/admin/cms', icon: Layers },
   ];

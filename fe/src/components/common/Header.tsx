@@ -3,10 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Search, ShoppingBag, Heart, User, Menu, X, ShieldCheck, ChevronDown, Store, Crown } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
 
 export const Header: React.FC = () => {
   const { user, logout, quickSwitchRole, setIsAuthModalOpen } = useAuth();
   const { itemCount, setIsCartDrawerOpen } = useCart();
+  const { wishlistIds } = useWishlist();
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
@@ -223,8 +225,13 @@ export const Header: React.FC = () => {
             </div>
 
             {/* WISHLIST */}
-            <Link to="/account/wishlist" className="text-charcoal-700 hover:text-brand-700 p-1.5 transition-colors hidden sm:block">
+            <Link to="/account/wishlist" className="relative text-charcoal-700 hover:text-brand-700 p-1.5 transition-colors hidden sm:block" title="My Wishlist">
               <Heart size={20} />
+              {wishlistIds.size > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white font-bold text-[9px] w-4 h-4 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                  {wishlistIds.size}
+                </span>
+              )}
             </Link>
 
             {/* CART DRAWER BUTTON */}

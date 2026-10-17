@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Star, Heart } from 'lucide-react';
 import { Product } from '../../types';
 import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
 
 interface SareeCardProps {
   product: Product;
@@ -10,11 +11,19 @@ interface SareeCardProps {
 
 export const SareeCard: React.FC<SareeCardProps> = ({ product }) => {
   const { addToCart } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const isWishlisted = isInWishlist(product.id);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     addToCart(product.id, 1);
+  };
+
+  const handleToggleWishlist = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await toggleWishlist(product.id);
   };
 
   return (
@@ -37,15 +46,13 @@ export const SareeCard: React.FC<SareeCardProps> = ({ product }) => {
 
         {/* WISHLIST BUTTON */}
         <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            alert(`Added "${product.title}" to your wishlist!`);
-          }}
-          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-charcoal-700 hover:text-brand-700 flex items-center justify-center shadow-sm backdrop-blur-sm transition-colors"
-          aria-label="Add to wishlist"
+          onClick={handleToggleWishlist}
+          className={`absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-sm backdrop-blur-sm transition-all ${
+            isWishlisted ? 'text-red-600 scale-110' : 'text-charcoal-700 hover:text-brand-700'
+          }`}
+          aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
         >
-          <Heart size={16} />
+          <Heart size={16} className={isWishlisted ? 'fill-red-600' : ''} />
         </button>
 
         {/* OUT OF STOCK OVERLAY */}

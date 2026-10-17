@@ -212,6 +212,61 @@ router.post('/orders/:id/refund', async (req: AuthenticatedRequest, res: Respons
   }
 });
 
+// PUT /api/admin/orders/:id/status
+// Transition order payment or fulfillment status with strict validation & audit trail
+router.put('/orders/:id/status', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const order = db.getOrderById(req.params.id);
+    if (!order) {
+      res.status(404).json({ error: 'Order not found.' });
+      return;
+    }
+
+    const { payment_status, fulfillment_status, notes } = req.body;
+
+    const updates: Partial<typeof order> = {};
+    if (payment_status) {
+      const validPayments = ['pending', 'authorized', 'captured', 'failed', 'refunded', 'cancelled'];
+      if (!validPayments.includes(payment_status)) {
+        res.status(400).json({ error: `Invalid payment status. Must be one of: ${validPayments.join(', ')}` });
+        return;
+      }
+      updates.payment_status = payment_status;
+    }
+
+    if (notes) {
+      updates.notes = `${order.notes || ''} [${notes}]`.trim();
+    }
+
+    const updatedOrder = db.updateOrder(order.id, updates);
+
+    if (fulfillment_status) {
+      const validFulfillment = ['pending', 'processing', 'packed', 'shipped', 'delivered', 'cancelled', 'return_requested'];
+      if (!validFulfillment.includes(fulfillment_status)) {
+        res.status(400).json({ error: `Invalid fulfillment status. Must be one of: ${validFulfillment.join(', ')}` });
+        return;
+      }
+      order.fulfillment_groups.forEach(fg => {
+        db.updateFulfillmentGroup(fg.id, { fulfillment_status: fulfillment_status as any });
+      });
+    }
+
+    db.logAudit({
+      actor_id: req.user!.id,
+      actor_email: req.user!.email,
+      actor_role: 'admin',
+      action: 'ADMIN_ORDER_STATUS_UPDATED',
+      target_type: 'ORDER',
+      target_id: order.id,
+      metadata: { payment_status, fulfillment_status, notes }
+    });
+
+    res.json({ message: 'Order status updated successfully', order: updatedOrder });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/admin/finance/payouts
 router.get('/finance/payouts', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
@@ -344,6 +399,54 @@ router.post('/cms/coupons', async (req: AuthenticatedRequest, res: Response): Pr
   }
 });
 
+// PUT /api/admin/cms/banners/:id
+router.put('/cms/banners/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const updated = db.updateBanner(req.params.id, req.body);
+    if (!updated) {
+      res.status(404).json({ error: 'Banner not found' });
+      return;
+    }
+    res.json(updated);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/admin/cms/banners/:id
+router.delete('/cms/banners/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const ok = db.deleteBanner(req.params.id);
+    res.json({ success: ok });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/admin/cms/coupons/:id
+router.put('/cms/coupons/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const updated = db.updateCoupon(req.params.id, req.body);
+    if (!updated) {
+      res.status(404).json({ error: 'Coupon not found' });
+      return;
+    }
+    res.json(updated);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/admin/cms/coupons/:id
+router.delete('/cms/coupons/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const ok = db.deleteCoupon(req.params.id);
+    res.json({ success: ok });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/admin/audit-logs
 router.get('/audit-logs', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
@@ -353,5 +456,292 @@ router.get('/audit-logs', async (req: AuthenticatedRequest, res: Response): Prom
     res.status(500).json({ error: err.message });
   }
 });
+
+// GET /api/admin/analytics
+router.get('/analytics', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const range = (req.query.range as any) || 'all';
+    const analytics = db.getAnalytics(range);
+    res.json(analytics);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- CATEGORY & COLLECTION CRUD ---
+// GET /api/admin/categories
+router.get('/categories', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    res.json(db.getAllCategories());
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/categories
+router.post('/categories', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { name, slug, description, image_url, display_order, is_active } = req.body;
+    if (!name) {
+      res.status(400).json({ error: 'Category name is required.' });
+      return;
+    }
+    const categorySlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const newCat = db.createCategory({
+      id: `cat-${uuidv4().substring(0, 8)}`,
+      name,
+      slug: categorySlug,
+      description,
+      image_url,
+      display_order: display_order || 0,
+      is_active: is_active !== undefined ? is_active : true,
+    });
+    db.logAudit({
+      actor_id: req.user!.id,
+      actor_email: req.user!.email,
+      actor_role: 'admin',
+      action: 'ADMIN_CATEGORY_CREATED',
+      target_type: 'CATEGORY',
+      target_id: newCat.id,
+      metadata: { name: newCat.name }
+    });
+    res.status(201).json(newCat);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/admin/categories/:id
+router.put('/categories/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const updated = db.updateCategory(req.params.id, req.body);
+    if (!updated) {
+      res.status(404).json({ error: 'Category not found.' });
+      return;
+    }
+    res.json(updated);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/admin/categories/:id
+router.delete('/categories/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    // Check if products exist in category
+    const productsInCat = db.getAllProducts({ categorySlug: '' }).filter(p => p.category_id === req.params.id);
+    if (productsInCat.length > 0) {
+      res.status(400).json({ 
+        error: `Cannot delete category. It currently contains ${productsInCat.length} product(s). Please reassign them first or deactivate the category.` 
+      });
+      return;
+    }
+    db.deleteCategory(req.params.id);
+    res.json({ message: 'Category removed successfully.' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- ADMIN DIRECT PRODUCT MANAGEMENT ---
+// POST /api/admin/products
+router.post('/products', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const {
+      seller_id,
+      title,
+      description,
+      category_id,
+      base_price,
+      original_price,
+      sku,
+      stock_quantity,
+      fabric,
+      zari_type,
+      border_style,
+      color,
+      care_instructions,
+      images,
+      is_featured,
+      is_bestseller,
+      status = 'approved'
+    } = req.body;
+
+    if (!title || !base_price || !fabric || !color) {
+      res.status(400).json({ error: 'Title, price, fabric, and color are mandatory.' });
+      return;
+    }
+
+    const seller = db.getSellerById(seller_id) || db.getAllSellers()[0];
+    const category = db.getAllCategories().find(c => c.id === category_id);
+    const prodSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+    const newProd = db.createProduct({
+      id: `prod-${uuidv4().substring(0, 8)}`,
+      seller_id: seller?.id || 'seller-001',
+      seller_name: seller?.business_name || 'Sri Venkateswara Handlooms',
+      seller_slug: seller?.slug || 'sri-venkateswara-handlooms',
+      title,
+      slug: `${prodSlug}-${Math.floor(100 + Math.random() * 900)}`,
+      description: description || 'Master weaver authentic pit-loom Gadwal saree.',
+      category_id: category?.id || 'cat-001',
+      category_name: category?.name || 'Pure Silk Sarees',
+      category_slug: category?.slug || 'pure-silk-sarees',
+      base_price: parseFloat(base_price),
+      original_price: original_price ? parseFloat(original_price) : parseFloat(base_price),
+      discount_percent: original_price ? Math.round(((original_price - base_price) / original_price) * 100) : 0,
+      sku: sku || `GW-${Math.floor(1000 + Math.random() * 9000)}`,
+      stock_quantity: parseInt(stock_quantity, 10) || 1,
+      reserved_quantity: 0,
+      fabric,
+      zari_type: zari_type || 'Tested Zari',
+      border_style: border_style || 'Kuttu Border',
+      saree_length_meters: 6.30,
+      blouse_included: true,
+      color,
+      primary_color: color,
+      weaving_technique: 'Traditional 3-shuttle interlocking pit loom',
+      care_instructions: care_instructions || 'Dry clean only.',
+      gi_certified: true,
+      handloom_mark_certified: true,
+      images: Array.isArray(images) && images.length ? images : ['https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1000&auto=format&fit=crop&q=80'],
+      status: status,
+      rating: 5.0,
+      review_count: 0,
+      is_featured: !!is_featured,
+      is_bestseller: !!is_bestseller,
+      is_new_arrival: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    db.logAudit({
+      actor_id: req.user!.id,
+      actor_email: req.user!.email,
+      actor_role: 'admin',
+      action: 'ADMIN_PRODUCT_CREATED',
+      target_type: 'PRODUCT',
+      target_id: newProd.id,
+      metadata: { title: newProd.title }
+    });
+
+    res.status(201).json({ message: 'Product created successfully by Admin.', product: newProd });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/admin/products/:id
+router.delete('/products/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const prod = db.getProductById(req.params.id);
+    if (!prod) {
+      res.status(404).json({ error: 'Product not found.' });
+      return;
+    }
+    db.updateProduct(prod.id, { status: 'archived' });
+    res.json({ message: 'Product archived successfully.' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- CUSTOMER MANAGEMENT ---
+// GET /api/admin/customers
+router.get('/customers', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const customers = db.getAllCustomers();
+    res.json(customers);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/admin/customers/:id/status
+router.put('/customers/:id/status', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { is_suspended } = req.body;
+    const updated = db.updateCustomerStatus(req.params.id, !!is_suspended);
+    if (!updated) {
+      res.status(404).json({ error: 'Customer not found.' });
+      return;
+    }
+    db.logAudit({
+      actor_id: req.user!.id,
+      actor_email: req.user!.email,
+      actor_role: 'admin',
+      action: 'ADMIN_CUSTOMER_STATUS_CHANGED',
+      target_type: 'USER',
+      target_id: req.params.id,
+      metadata: { is_suspended }
+    });
+    res.json({ message: 'Customer account status updated.', customer: updated });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- SHIPMENTS MANAGEMENT ---
+// GET /api/admin/shipments
+router.get('/shipments', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const groups = Array.from(db.fulfillmentGroups.values())
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    res.json(groups);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- SITE SETTINGS ---
+// GET /api/admin/settings
+router.get('/settings', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    res.json(db.getSiteSettings());
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/admin/settings
+router.put('/settings', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const updated = db.updateSiteSettings(req.body);
+    db.logAudit({
+      actor_id: req.user!.id,
+      actor_email: req.user!.email,
+      actor_role: 'admin',
+      action: 'ADMIN_SETTINGS_UPDATED',
+      target_type: 'SETTINGS',
+      target_id: 'settings-001',
+      metadata: req.body
+    });
+    res.json({ message: 'Marketplace settings updated successfully.', settings: updated });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- NOTIFICATIONS ---
+// GET /api/admin/notifications
+router.get('/notifications', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const notifs = db.getNotifications('admin', 'admin');
+    res.json(notifs);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/admin/notifications/:id/read
+router.put('/notifications/:id/read', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    db.markNotificationAsRead(req.params.id);
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 export default router;

@@ -337,3 +337,40 @@ export interface AuditLog {
   ip_address?: string;
   created_at: string;
 }
+
+export interface InAppNotification {
+  id: string;
+  user_id: string; // or 'admin' or seller user_id or customer user_id
+  recipient_role?: UserRole;
+  title: string;
+  message: string;
+  type: 'order' | 'product' | 'kyc' | 'payout' | 'shipping' | 'refund' | 'system';
+  link?: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface SiteSettings {
+  id: string;
+  marketplace_name: string;
+  support_email: string;
+  support_phone: string;
+  announcement_bar_text: string;
+  announcement_bar_link?: string;
+  announcement_bar_active: boolean;
+  currency: string;
+  currency_symbol: string;
+  tax_rate_handloom: number; // percentage, e.g. 5
+  free_shipping_threshold: number; // e.g. 0
+  default_commission_rate: number; // e.g. 10.0
+  meta_title: string;
+  meta_description: string;
+}
+
+export interface CustomerSummary extends UserProfile {
+  total_orders: number;
+  total_spent: number;
+  last_order_date?: string;
+  is_suspended?: boolean;
+}
+

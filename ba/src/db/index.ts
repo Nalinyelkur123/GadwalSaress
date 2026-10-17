@@ -16,7 +16,10 @@ import {
   CMSBanner, 
   Coupon, 
   AuditLog, 
-  Address
+  Address,
+  InAppNotification,
+  SiteSettings,
+  CustomerSummary
 } from '../types/index.js';
 import { 
   INITIAL_USERS, 
@@ -35,12 +38,13 @@ import { v4 as uuidv4 } from 'uuid';
  * Provides transactional in-memory / persistent repository semantics with full Supabase PostgreSQL compatibility.
  */
 class DatabaseStore {
-  public users: Map<string, UserProfile & { password_hash: string }> = new Map();
+  public users: Map<string, UserProfile & { password_hash: string; is_suspended?: boolean }> = new Map();
   public sellers: Map<string, SellerProfile> = new Map();
   public categories: Map<string, Category> = new Map();
   public collections: Map<string, Collection> = new Map();
   public products: Map<string, Product> = new Map();
   public carts: Map<string, CartItem[]> = new Map(); // key is userId or sessionToken
+  public wishlists: Map<string, Set<string>> = new Map(); // key is userId, set of productIds
   public addresses: Map<string, Address[]> = new Map(); // key is userId
   public orders: Map<string, Order> = new Map();
   public orderItems: Map<string, OrderItem[]> = new Map(); // key is orderId
@@ -53,6 +57,23 @@ class DatabaseStore {
   public cmsBanners: Map<string, CMSBanner> = new Map();
   public coupons: Map<string, Coupon> = new Map();
   public auditLogs: AuditLog[] = [];
+  public notifications: Map<string, InAppNotification> = new Map();
+  public siteSettings: SiteSettings = {
+    id: 'settings-001',
+    marketplace_name: 'Gadwal Weaves',
+    support_email: 'support@gadwalweaves.in',
+    support_phone: '+91 98765 43210',
+    announcement_bar_text: 'Authentic Pit-Loom Gadwal Sarees Direct from Master Weavers | Free Insured Shipping Across India',
+    announcement_bar_link: '/shop',
+    announcement_bar_active: true,
+    currency: 'INR',
+    currency_symbol: '₹',
+    tax_rate_handloom: 5.0,
+    free_shipping_threshold: 0,
+    default_commission_rate: 10.0,
+    meta_title: 'Gadwal Weaves | Handcrafted Authentic Pit-Loom Silk & Cotton Sarees',
+    meta_description: 'Discover authentic GI-certified Gadwal handloom sarees woven with pure mulberry silk, fine cotton, and genuine zari borders by heritage pit-loom artisans in Telangana.'
+  };
 
   constructor() {
     this.seed();
@@ -98,7 +119,10 @@ class DatabaseStore {
       }
     ]);
 
-    // 10. Initial Seed Order (so customer & admin have historical records)
+    // 10. Initial Wishlist for demo customer
+    this.wishlists.set('30000000-0000-0000-0000-000000000001', new Set(['prod-001', 'prod-003']));
+
+    // 11. Initial Seed Order (so customer & admin have historical records)
     const initialOrder: Order = {
       id: 'ord-001',
       order_number: 'GW-2024-0001',
@@ -193,6 +217,35 @@ class DatabaseStore {
       created_at: new Date('2024-02-05T14:30:00Z').toISOString(),
     });
 
+    // Initial Notifications
+    this.createNotification({
+      user_id: 'admin',
+      recipient_role: 'admin',
+      title: 'Platform Initialized',
+      message: 'Gadwal Weaves Multi-Vendor Marketplace operations engine is active.',
+      type: 'system',
+      link: '/admin/dashboard',
+      is_read: false
+    });
+    this.createNotification({
+      user_id: '20000000-0000-0000-0000-000000000001',
+      recipient_role: 'seller',
+      title: 'Welcome to Gadwal Weaves Artisan Portal',
+      message: 'Your artisan store Sri Venkateswara Handlooms is approved and active.',
+      type: 'kyc',
+      link: '/seller/dashboard',
+      is_read: false
+    });
+    this.createNotification({
+      user_id: '30000000-0000-0000-0000-000000000001',
+      recipient_role: 'customer',
+      title: 'Order GW-2024-0001 Delivered',
+      message: 'Your Royal Maroon Gadwal Pure Silk Saree has been delivered. Enjoy authentic handloom heritage!',
+      type: 'order',
+      link: '/account/orders',
+      is_read: true
+    });
+
     console.log('[DB] Pre-seeded Gadwal Weaves store with authentic weavers, products, and catalog.');
   }
 
@@ -271,9 +324,23 @@ class DatabaseStore {
     return null;
   }
 
-  public createCategory(category: Category) {
-    this.categories.set(category.id, category);
-    return category;
+  public getCategoryById(id: string): Category | null {
+    return this.categories.get(id) || null;
+  }
+
+  public createCategory(category: Partial<Category> & { name: string; slug: string }): Category {
+    const id = category.id || `cat-${uuidv4().substring(0, 8)}`;
+    const fullCategory: Category = {
+      id,
+      name: category.name,
+      slug: category.slug,
+      description: category.description,
+      image_url: category.image_url,
+      display_order: category.display_order || this.categories.size + 1,
+      is_active: category.is_active ?? true,
+    };
+    this.categories.set(id, fullCategory);
+    return fullCategory;
   }
 
   public updateCategory(id: string, updates: Partial<Category>) {
@@ -752,6 +819,271 @@ class DatabaseStore {
 
   public getAuditLogs(limit: number = 50): AuditLog[] {
     return this.auditLogs.slice(0, limit);
+  }
+
+  // --- IN-APP NOTIFICATIONS ---
+  public getNotifications(userId: string, role?: string): InAppNotification[] {
+    return Array.from(this.notifications.values())
+      .filter(n => n.user_id === userId || (role && n.recipient_role === role) || n.user_id === 'all')
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }
+
+  public createNotification(data: Omit<InAppNotification, 'id' | 'created_at'>): InAppNotification {
+    const notification: InAppNotification = {
+      ...data,
+      id: `notif-${uuidv4().substring(0, 8)}`,
+      created_at: new Date().toISOString()
+    };
+    this.notifications.set(notification.id, notification);
+    return notification;
+  }
+
+  public markNotificationAsRead(id: string): boolean {
+    const notif = this.notifications.get(id);
+    if (!notif) return false;
+    notif.is_read = true;
+    this.notifications.set(id, notif);
+    return true;
+  }
+
+  public markAllNotificationsAsRead(userId: string, role?: string): void {
+    for (const notif of this.notifications.values()) {
+      if (notif.user_id === userId || (role && notif.recipient_role === role)) {
+        notif.is_read = true;
+      }
+    }
+  }
+
+  // --- SITE SETTINGS ---
+  public getSiteSettings(): SiteSettings {
+    return { ...this.siteSettings };
+  }
+
+  public updateSiteSettings(updates: Partial<SiteSettings>): SiteSettings {
+    this.siteSettings = { ...this.siteSettings, ...updates };
+    return { ...this.siteSettings };
+  }
+
+  // --- CUSTOMER MANAGEMENT ---
+  public getAllCustomers(): CustomerSummary[] {
+    const customers: CustomerSummary[] = [];
+    const orders = this.getAllOrders();
+
+    for (const user of this.users.values()) {
+      if (user.role === 'customer') {
+        const userOrders = orders.filter(o => o.customer_id === user.id);
+        const totalSpent = userOrders
+          .filter(o => o.payment_status === 'captured')
+          .reduce((sum, o) => sum + o.final_amount, 0);
+
+        customers.push({
+          id: user.id,
+          email: user.email,
+          full_name: user.full_name,
+          phone: user.phone,
+          role: user.role,
+          avatar_url: user.avatar_url,
+          created_at: user.created_at,
+          updated_at: user.updated_at,
+          total_orders: userOrders.length,
+          total_spent: totalSpent,
+          last_order_date: userOrders[0]?.created_at,
+          is_suspended: user.is_suspended || false
+        });
+      }
+    }
+    return customers;
+  }
+
+  public updateCustomerStatus(id: string, is_suspended: boolean) {
+    const user = this.users.get(id);
+    if (!user) return null;
+    user.is_suspended = is_suspended;
+    user.updated_at = new Date().toISOString();
+    this.users.set(id, user);
+    return user;
+  }
+
+  // --- ORDER CANCELLATION & RETURN WORKFLOWS ---
+  public cancelOrder(orderId: string, reason: string): { success: boolean; message: string } {
+    const order = this.getOrderById(orderId);
+    if (!order) return { success: false, message: 'Order not found.' };
+
+    // Disallow cancelling if already shipped or delivered
+    const hasShipped = order.fulfillment_groups.some(
+      fg => fg.fulfillment_status === 'shipped' || fg.fulfillment_status === 'delivered'
+    );
+    if (hasShipped) {
+      return { success: false, message: 'Cannot cancel an order that has already shipped or been delivered.' };
+    }
+
+    if (order.payment_status === 'refunded' || order.payment_status === 'cancelled') {
+      return { success: false, message: 'Order is already cancelled or refunded.' };
+    }
+
+    // Update parent order
+    this.updateOrder(order.id, {
+      payment_status: 'cancelled',
+      notes: `${order.notes || ''} [Cancelled by customer: ${reason}]`.trim()
+    });
+
+    // Update all fulfillment groups
+    order.fulfillment_groups.forEach(fg => {
+      this.updateFulfillmentGroup(fg.id, {
+        fulfillment_status: 'cancelled',
+        cancellation_reason: reason
+      });
+    });
+
+    // Release/revert inventory
+    order.items.forEach(item => {
+      const prod = this.getProductById(item.product_id);
+      if (prod) {
+        prod.stock_quantity += item.quantity;
+        this.products.set(prod.id, prod);
+      }
+    });
+
+    return { success: true, message: 'Order cancelled successfully and inventory restored.' };
+  }
+
+  public requestReturn(orderId: string, reason: string): { success: boolean; message: string } {
+    const order = this.getOrderById(orderId);
+    if (!order) return { success: false, message: 'Order not found.' };
+
+    const isDelivered = order.fulfillment_groups.some(fg => fg.fulfillment_status === 'delivered');
+    if (!isDelivered) {
+      return { success: false, message: 'Return requests can only be made for delivered orders.' };
+    }
+
+    order.fulfillment_groups.forEach(fg => {
+      if (fg.fulfillment_status === 'delivered') {
+        this.updateFulfillmentGroup(fg.id, {
+          fulfillment_status: 'return_in_progress',
+          return_reason: reason
+        });
+      }
+    });
+
+    this.createNotification({
+      user_id: 'admin',
+      recipient_role: 'admin',
+      title: `Return Request for ${order.order_number}`,
+      message: `Customer ${order.customer_name} requested a return: "${reason}"`,
+      type: 'refund',
+      link: '/admin/orders',
+      is_read: false
+    });
+
+    return { success: true, message: 'Return request submitted. Our team will review and approve within 24 hours.' };
+  }
+
+  // --- AUTHORITATIVE ANALYTICS ENGINE ---
+  public getAnalytics(dateFilter: 'today' | '7d' | '30d' | 'all' = 'all') {
+    const now = Date.now();
+    let filterMs = 0;
+    if (dateFilter === 'today') filterMs = 24 * 60 * 60 * 1000;
+    else if (dateFilter === '7d') filterMs = 7 * 24 * 60 * 60 * 1000;
+    else if (dateFilter === '30d') filterMs = 30 * 24 * 60 * 60 * 1000;
+
+    let orders = this.getAllOrders();
+    if (filterMs > 0) {
+      orders = orders.filter(o => now - new Date(o.created_at).getTime() <= filterMs);
+    }
+
+    const paidOrders = orders.filter(o => o.payment_status === 'captured');
+    const gmv = paidOrders.reduce((sum, o) => sum + o.final_amount, 0);
+    const totalPlatformCommission = Array.from(this.ledger.values())
+      .filter(l => filterMs === 0 || now - new Date(l.created_at).getTime() <= filterMs)
+      .reduce((sum, l) => sum + l.platform_commission, 0);
+
+    const sellers = this.getAllSellers();
+    const products = Array.from(this.products.values());
+    const payoutRequests = this.getAllPayoutRequests();
+
+    // Category breakdown
+    const categorySalesMap = new Map<string, { name: string; count: number; revenue: number }>();
+    paidOrders.forEach(o => {
+      o.items.forEach(item => {
+        const prod = this.getProductById(item.product_id);
+        const catName = prod?.category_name || 'Pure Silk';
+        if (!categorySalesMap.has(catName)) {
+          categorySalesMap.set(catName, { name: catName, count: 0, revenue: 0 });
+        }
+        const record = categorySalesMap.get(catName)!;
+        record.count += item.quantity;
+        record.revenue += item.subtotal;
+      });
+    });
+
+    // Orders by status
+    const statusCounts = {
+      captured: orders.filter(o => o.payment_status === 'captured').length,
+      pending: orders.filter(o => o.payment_status === 'pending').length,
+      refunded: orders.filter(o => o.payment_status === 'refunded').length,
+      cancelled: orders.filter(o => o.payment_status === 'cancelled').length,
+      failed: orders.filter(o => o.payment_status === 'failed').length,
+    };
+
+    return {
+      dateFilter,
+      summary: {
+        gmv,
+        paidOrdersCount: paidOrders.length,
+        totalOrdersCount: orders.length,
+        totalPlatformCommission,
+        totalSellers: sellers.length,
+        activeSellers: sellers.filter(s => s.status === 'active').length,
+        pendingSellerKyc: sellers.filter(s => s.kyc_status === 'pending').length,
+        totalProducts: products.length,
+        activeProducts: products.filter(p => p.status === 'approved').length,
+        pendingProductApprovals: products.filter(p => p.status === 'pending_approval').length,
+        lowStockProducts: products.filter(p => p.stock_quantity <= 2).length,
+        pendingPayoutRequests: payoutRequests.filter(p => p.status === 'requested').length,
+        statusCounts
+      },
+      categoryPerformance: Array.from(categorySalesMap.values()),
+      recentOrders: orders.slice(0, 8),
+    };
+  }
+
+  // WISHLIST OPERATIONS
+  public getWishlist(userId: string): Product[] {
+    const set = this.wishlists.get(userId);
+    if (!set) return [];
+    const products: Product[] = [];
+    for (const pid of set) {
+      const p = this.products.get(pid);
+      if (p) products.push(p);
+    }
+    return products;
+  }
+
+  public getWishlistIds(userId: string): string[] {
+    const set = this.wishlists.get(userId);
+    return set ? Array.from(set) : [];
+  }
+
+  public toggleWishlist(userId: string, productId: string): { inWishlist: boolean; count: number } {
+    if (!this.wishlists.has(userId)) {
+      this.wishlists.set(userId, new Set());
+    }
+    const set = this.wishlists.get(userId)!;
+    let inWishlist = false;
+    if (set.has(productId)) {
+      set.delete(productId);
+      inWishlist = false;
+    } else {
+      set.add(productId);
+      inWishlist = true;
+    }
+    return { inWishlist, count: set.size };
+  }
+
+  public removeFromWishlist(userId: string, productId: string): boolean {
+    const set = this.wishlists.get(userId);
+    if (!set) return false;
+    return set.delete(productId);
   }
 }
 
