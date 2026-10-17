@@ -8,13 +8,14 @@ import {
   Store, 
   ArrowLeft,
   LogOut,
-  Sparkles
+  Sparkles,
+  ExternalLink
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { AuthModal } from '../components/common/AuthModal';
+import { NotificationBell } from '../components/common/NotificationBell';
 
 export const SellerLayout: React.FC = () => {
-  const { user, seller, logout, quickSwitchRole, setIsAuthModalOpen } = useAuth();
+  const { user, seller, logout, quickSwitchRole } = useAuth();
   const location = useLocation();
 
   if (!user || user.role !== 'seller') {
@@ -54,7 +55,7 @@ export const SellerLayout: React.FC = () => {
     <div className="min-h-screen flex bg-ivory-100 text-charcoal-900">
       
       {/* SIDEBAR NAVIGATION */}
-      <aside className="w-64 bg-white border-r border-ivory-300 flex flex-col justify-between hidden md:flex">
+      <aside className="w-64 bg-white border-r border-ivory-300 flex flex-col justify-between hidden md:flex shrink-0">
         <div>
           {/* LOGO */}
           <div className="p-6 border-b border-ivory-300">
@@ -112,10 +113,37 @@ export const SellerLayout: React.FC = () => {
 
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* TOP MOBILE BAR */}
-        <header className="bg-white border-b border-ivory-300 px-6 py-4 flex items-center justify-between md:hidden">
-          <span className="font-serif font-bold text-sm text-brand-900">Seller Workspace</span>
-          <Link to="/" className="text-xs text-brand-700 font-semibold">Storefront</Link>
+        {/* TOP NAVBAR WITH NOTIFICATIONS & WEAVER PROFILE */}
+        <header className="bg-white border-b border-ivory-300 px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-serif font-bold text-sm text-brand-900">
+              {seller?.business_name || 'Artisan Workspace'}
+            </span>
+            <span className="text-[10px] px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold uppercase tracking-wider hidden sm:inline">
+              Verified Weaver
+            </span>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <NotificationBell role="seller" />
+
+            <Link 
+              to="/" 
+              className="text-xs text-charcoal-600 hover:text-brand-800 font-medium hidden sm:flex items-center gap-1"
+            >
+              <span>Storefront</span>
+              <ExternalLink size={12} />
+            </Link>
+
+            <div className="flex items-center gap-2 pl-2 border-l border-ivory-300">
+              <div className="w-7 h-7 rounded-full bg-gold-100 text-gold-900 font-bold text-xs flex items-center justify-center border border-gold-300">
+                W
+              </div>
+              <span className="text-xs font-semibold text-charcoal-800 hidden sm:inline">
+                {user.full_name || 'Master Weaver'}
+              </span>
+            </div>
+          </div>
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-8">

@@ -4,6 +4,7 @@ import { Search, ShoppingBag, Heart, User, Menu, X, ShieldCheck, ChevronDown, St
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
+import { NotificationBell } from './NotificationBell';
 
 export const Header: React.FC = () => {
   const { user, logout, quickSwitchRole, setIsAuthModalOpen } = useAuth();
@@ -223,6 +224,11 @@ export const Header: React.FC = () => {
                 </button>
               )}
             </div>
+
+            {/* NOTIFICATIONS BELL */}
+            {user && (
+              <NotificationBell role={user.role} />
+            )}
 
             {/* WISHLIST */}
             <Link to="/account/wishlist" className="relative text-charcoal-700 hover:text-brand-700 p-1.5 transition-colors hidden sm:block" title="My Wishlist">

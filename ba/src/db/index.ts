@@ -828,22 +828,23 @@ class DatabaseStore {
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 
-  public createNotification(data: Omit<InAppNotification, 'id' | 'created_at'>): InAppNotification {
+  public createNotification(data: Omit<InAppNotification, 'id' | 'created_at' | 'is_read'> & { is_read?: boolean }): InAppNotification {
     const notification: InAppNotification = {
       ...data,
       id: `notif-${uuidv4().substring(0, 8)}`,
+      is_read: data.is_read ?? false,
       created_at: new Date().toISOString()
     };
     this.notifications.set(notification.id, notification);
     return notification;
   }
 
-  public markNotificationAsRead(id: string): boolean {
+  public markNotificationAsRead(id: string): InAppNotification | null {
     const notif = this.notifications.get(id);
-    if (!notif) return false;
+    if (!notif) return null;
     notif.is_read = true;
     this.notifications.set(id, notif);
-    return true;
+    return notif;
   }
 
   public markAllNotificationsAsRead(userId: string, role?: string): void {
@@ -893,6 +894,10 @@ class DatabaseStore {
       }
     }
     return customers;
+  }
+
+  public getCustomerSummaries(): CustomerSummary[] {
+    return this.getAllCustomers();
   }
 
   public updateCustomerStatus(id: string, is_suspended: boolean) {

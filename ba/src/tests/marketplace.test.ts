@@ -172,4 +172,49 @@ describe('Gadwal Weaves Multi-Vendor Marketplace Core Engine', () => {
     expect(deleted).toBe(true);
     expect(db.getCategoryById(newCat.id)).toBeNull();
   });
+
+  it('10. should create, retrieve, and mark in-app notifications as read', () => {
+    const notif = db.createNotification({
+      user_id: 'admin',
+      recipient_role: 'admin',
+      title: 'New Artisan Registration',
+      message: 'Sri Lakshmi Handlooms submitted KYC documents for review.',
+      type: 'kyc',
+      link: '/admin/sellers',
+    });
+
+    expect(notif.id).toBeDefined();
+    expect(notif.is_read).toBe(false);
+
+    const adminNotifs = db.getNotifications('admin', 'admin');
+    expect(adminNotifs.some(n => n.id === notif.id)).toBe(true);
+
+    const marked = db.markNotificationAsRead(notif.id);
+    expect(marked?.is_read).toBe(true);
+  });
+
+  it('11. should manage site settings and reflect updates across the marketplace', () => {
+    const initialSettings = db.getSiteSettings();
+    expect(initialSettings.marketplace_name).toBe('Gadwal Weaves');
+    expect(initialSettings.default_commission_rate).toBe(10);
+
+    const updated = db.updateSiteSettings({
+      support_email: 'concierge@gadwalweaves.in',
+      announcement_bar_text: 'Festival Handloom Celebration: Flat 15% OFF with code GADWAL15',
+    });
+
+    expect(updated.support_email).toBe('concierge@gadwalweaves.in');
+    expect(updated.announcement_bar_text).toContain('GADWAL15');
+    expect(db.getSiteSettings().support_email).toBe('concierge@gadwalweaves.in');
+  });
+
+  it('12. should aggregate customer summaries with lifetime orders and spent totals', () => {
+    const summaries = db.getAllCustomers();
+    expect(summaries.length).toBeGreaterThan(0);
+
+    const ananya = summaries.find(c => c.email === 'customer@gadwalweaves.in');
+    expect(ananya).toBeDefined();
+    expect(ananya?.total_orders).toBeGreaterThanOrEqual(1);
+    expect(ananya?.total_spent).toBeGreaterThan(0);
+  });
 });

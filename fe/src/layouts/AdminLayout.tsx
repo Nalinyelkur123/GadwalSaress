@@ -10,9 +10,11 @@ import {
   ShieldAlert, 
   ArrowLeft,
   LogOut,
-  Crown
+  Crown,
+  ExternalLink
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { NotificationBell } from '../components/common/NotificationBell';
 
 export const AdminLayout: React.FC = () => {
   const { user, logout, quickSwitchRole } = useAuth();
@@ -59,7 +61,7 @@ export const AdminLayout: React.FC = () => {
     <div className="min-h-screen flex bg-ivory-100 text-charcoal-900">
       
       {/* SIDEBAR NAVIGATION */}
-      <aside className="w-64 bg-white border-r border-ivory-300 flex flex-col justify-between hidden md:flex">
+      <aside className="w-64 bg-white border-r border-ivory-300 flex flex-col justify-between hidden md:flex shrink-0">
         <div>
           {/* LOGO */}
           <div className="p-6 border-b border-ivory-300 bg-brand-900 text-white">
@@ -117,9 +119,32 @@ export const AdminLayout: React.FC = () => {
 
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="bg-white border-b border-ivory-300 px-6 py-4 flex items-center justify-between md:hidden">
-          <span className="font-serif font-bold text-sm text-brand-900">Admin CRM</span>
-          <Link to="/" className="text-xs text-brand-700 font-semibold">Storefront</Link>
+        {/* TOP NAVBAR WITH NOTIFICATIONS & PROFILE */}
+        <header className="bg-white border-b border-ivory-300 px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-serif font-bold text-sm text-brand-900">Super Admin Operations</span>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <NotificationBell role="admin" />
+
+            <Link 
+              to="/" 
+              className="text-xs text-charcoal-600 hover:text-brand-800 font-medium hidden sm:flex items-center gap-1"
+            >
+              <span>Public Store</span>
+              <ExternalLink size={12} />
+            </Link>
+
+            <div className="flex items-center gap-2 pl-2 border-l border-ivory-300">
+              <div className="w-7 h-7 rounded-full bg-brand-100 text-brand-900 font-bold text-xs flex items-center justify-center">
+                A
+              </div>
+              <span className="text-xs font-semibold text-charcoal-800 hidden sm:inline">
+                {user.full_name || 'Super Admin'}
+              </span>
+            </div>
+          </div>
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-8">
