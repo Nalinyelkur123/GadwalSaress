@@ -1,0 +1,14 @@
+{
+  "name": "gadwal-weaves-monorepo",
+  "version": "1.0.0",
+  "description": "Gadwal Weaves — Multi-Vendor Handloom Marketplace Platform",
+  "scripts": {
+    "dev:backend": "npm --prefix ba run dev",
+    "dev:frontend": "npm --prefix fe run dev",
+    "test:backend": "npm --prefix ba test",
+    "build:frontend": "npm --prefix fe run build"
+  },
+  "keywords": ["gadwal", "saree", "handloom", "marketplace"],
+  "author": "Gadwal Weaves Engineering Team",
+  "license": "MIT"
+}
